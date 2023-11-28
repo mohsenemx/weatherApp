@@ -136,241 +136,231 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Container(
         constraints: BoxConstraints(
-          minHeight: MediaQuery.of(context).size.height,
-          minWidth: MediaQuery.of(context).size.width,
           maxHeight: MediaQuery.of(context).size.height,
           maxWidth: MediaQuery.of(context).size.width,
         ),
         decoration: BoxDecoration(
           gradient: background,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 400,
-                ),
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          mainIcon,
-                          color: IconColor,
-                          size: IconSize,
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          temperature ?? "Error",
-                          style: bigBold,
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 15,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 400,
+                  ),
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            mainIcon,
+                            color: IconColor,
+                            size: IconSize,
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            temperature ?? "Error",
+                            style: bigBold,
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 15,
+                              ),
+                              Text(
+                                ' °C',
+                                style: mediumBold,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Center(
+                            child: Text(
+                              '${mainWeather}',
+                              style: mediumSB,
                             ),
-                            Text(
-                              ' °C',
+                          ),
+                          Center(
+                            child: Text(
+                              'Feels like ${tempfeelslike} °C',
                               style: mediumBold,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Center(
-                          child: Text(
-                            '${mainWeather}',
-                            style: mediumSB,
                           ),
-                        ),
-                        Center(
-                          child: Text(
-                            'Feels like ${tempfeelslike} °C',
-                            style: mediumBold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sunrise: ${sunrise}',
+                        style: smallSB,
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    width: 100,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Sunset:  ${sunset}',
+                        style: smallSB,
+                      ),
+                    ],
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              SizedBox(
+                height: 110,
+                width: MediaQuery.of(context).size.width - 20,
+                child: futureForecastWidget,
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: 55,
+                  maxWidth: 350,
                 ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                decoration: divDecoration,
+                child: Row(
+                  // Show humidty
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      Icons.water_drop_outlined,
+                      color: IconColor,
+                    ),
+                    SizedBox(
+                      width: 15,
+                    ),
                     Text(
-                      'Sunrise: ${sunrise}',
+                      'Humidity:   ${humidity}%',
                       style: smallSB,
                     ),
                   ],
                 ),
-                SizedBox(
-                  width: 100,
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: 55,
+                  maxWidth: 350,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                decoration: divDecoration,
+                child: Row(
+                  // Show wind speed
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      Icons.air,
+                      color: IconColor,
+                    ),
+                    SizedBox(
+                      width: 15,
+                    ),
                     Text(
-                      'Sunset:  ${sunset}',
+                      'Wind Speed:   ${windSpeed} km/h',
                       style: smallSB,
                     ),
                   ],
-                )
-              ],
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ListView.builder(
-                  itemCount: futureForeCast.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return HourlyForecast(
-                      mainWeather: futureForeCast[index].mainWeather,
-                      temp: futureForeCast[index].temp,
-                      time: futureForeCast[index].time,
-                    );
-                  },
                 ),
-              ],
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            Container(
-              constraints: BoxConstraints(
-                minHeight: 55,
-                maxWidth: 350,
               ),
-              decoration: divDecoration,
-              child: Row(
-                // Show humidty
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.water_drop_outlined,
-                    color: IconColor,
-                  ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Text(
-                    'Humidity:   ${humidity}%',
-                    style: smallSB,
-                  ),
-                ],
+              SizedBox(
+                height: 15,
               ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Container(
-              constraints: BoxConstraints(
-                minHeight: 55,
-                maxWidth: 350,
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: 55,
+                  maxWidth: 350,
+                ),
+                decoration: divDecoration,
+                child: Row(
+                  // Show long description of current weather
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.abc,
+                      color: IconColor,
+                    ),
+                    SizedBox(
+                      width: 15,
+                    ),
+                    Text(
+                      weatherDescription!,
+                      style: smallSB,
+                    ),
+                  ],
+                ),
               ),
-              decoration: divDecoration,
-              child: Row(
-                // Show wind speed
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.air,
-                    color: IconColor,
-                  ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Text(
-                    'Wind Speed:   ${windSpeed} km/h',
-                    style: smallSB,
-                  ),
-                ],
+              SizedBox(
+                height: 15,
               ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Container(
-              constraints: BoxConstraints(
-                minHeight: 55,
-                maxWidth: 350,
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: 55,
+                  maxWidth: 350,
+                ),
+                decoration: divDecoration,
+                child: Row(
+                  // Show air pressure
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      WeatherIcons.windy,
+                      color: IconColor,
+                    ),
+                    SizedBox(
+                      width: 15,
+                    ),
+                    Text(
+                      '${pressure!} atm',
+                      style: smallSB,
+                    ),
+                  ],
+                ),
               ),
-              decoration: divDecoration,
-              child: Row(
-                // Show long description of current weather
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.abc,
-                    color: IconColor,
-                  ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Text(
-                    weatherDescription!,
-                    style: smallSB,
-                  ),
-                ],
+              SizedBox(
+                height: 15,
               ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Container(
-              constraints: BoxConstraints(
-                minHeight: 55,
-                maxWidth: 350,
-              ),
-              decoration: divDecoration,
-              child: Row(
-                // Show air pressure
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    WeatherIcons.windy,
-                    color: IconColor,
-                  ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Text(
-                    '${pressure!} atm',
-                    style: smallSB,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 15,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

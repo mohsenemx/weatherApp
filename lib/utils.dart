@@ -98,6 +98,12 @@ List<HourlyForecastClass> futureForeCast = [];
 Future<void> getNext5Hours(cityName) async {
   //print('$cLat $cLon');
   var a, j;
+  if (cLat == "" || cLat == null) {
+    cLat = 36.33.toString();
+  }
+  if (cLon == "" || cLon == null) {
+    cLon = 53.03.toString();
+  }
   try {
     a = await http.get(Uri.parse(
         'https://api.openweathermap.org/data/2.5/forecast?lat=${cLat}&lon=${cLon}&appid=${WeatherAPIKey}&units=metric&cnt=5'));
@@ -108,16 +114,18 @@ Future<void> getNext5Hours(cityName) async {
   }
 
   //print(j);
-
-  if (j?['list'] ?? true) {
+/*
+  if (j!['list'] ) {
     return;
-  }
+  }*/
   print(j['list']);
   for (int i = 0; i < 5; i++) {
     HourlyForecastClass hfc = HourlyForecastClass();
     hfc.mainWeather = j['list'][i]['weather'][0]['main'];
     hfc.unixTime = j['list'][i]['dt'].toString();
-    hfc.temp = double.parse(j['list'][i]['main']['temp'].toString()).round().toString();
+    hfc.temp = double.parse(j['list'][i]['main']['temp'].toString())
+        .round()
+        .toString();
     hfc.convertUnixTime();
     futureForeCast.add(hfc);
   }
@@ -141,32 +149,52 @@ class HourlyForecast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: 110,
-        maxWidth: 60,
-        minWidth: 50,
-      ),
-      decoration: divDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            chooseIcon(mainWeather),
-            color: IconColor,
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Text(mainWeather, style: smallSB),
-          SizedBox(
-            height: 5,
-          ),
-          Text('${temp} °C', style: smallSB),
-          Text(time, style: smallSB),
-        ],
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: 110,
+          maxWidth: 60,
+          minWidth: 50,
+        ),
+        decoration: divDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              chooseIcon(mainWeather),
+              color: IconColor,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Text(mainWeather, style: smallSB),
+            SizedBox(
+              height: 5,
+            ),
+            Text('${temp} °C', style: smallSB),
+            Text(time, style: smallSB),
+          ],
+        ),
       ),
     );
   }
 }
+
+Widget futureForecastWidget = SizedBox.expand(
+  child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      shrinkWrap: true,
+      itemCount: futureForeCast.length,
+      itemBuilder: (BuildContext context, int index) {
+        return HourlyForecast(
+          mainWeather: futureForeCast[index].mainWeather,
+          temp: futureForeCast[index].temp,
+          time: futureForeCast[index].time,
+        );
+      },
+      separatorBuilder: (context, index) => SizedBox(
+            height: 100,
+          )),
+);
