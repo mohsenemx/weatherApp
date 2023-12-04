@@ -23,7 +23,7 @@ Future<String> getCountrybyCity(String cityName) async {
     print(e);
   }
 
-  print(j);
+  //print(j);
   try {
     cLat = j[0]['lat'].toStringAsFixed(2) ?? 36.33;
     cLon = j[0]['lon'].toStringAsFixed(2) ?? 53.03;
@@ -58,6 +58,8 @@ IconData chooseIcon(String name) {
     return WeatherIcons.fog;
   } else if (name == 'Fog') {
     return WeatherIcons.fog;
+  } else if (name == 'nodata') {
+    return WeatherIcons.night_fog;
   }
   return IconData(0);
 }
@@ -106,76 +108,72 @@ Future<void> getNext5Hours(cityName) async {
   }
   try {
     a = await http.get(Uri.parse(
-        'https://api.openweathermap.org/data/2.5/forecast?lat=${cLat}&lon=${cLon}&appid=${WeatherAPIKey}&units=metric&cnt=5'));
-    print(a.body);
+        'https://api.openweathermap.org/data/2.5/forecast?lat=${cLat}&lon=${cLon}&appid=${WeatherAPIKey}&units=metric&cnt=10'));
+    //print(a.body);
     j = jsonDecode(a.body);
   } on http.ClientException catch (e) {
     print(e);
   }
 
-  //print(j);
-/*
-  if (j!['list'] ) {
-    return;
-  }*/
-  print(j['list']);
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 10; i++) {
     HourlyForecastClass hfc = HourlyForecastClass();
-    hfc.mainWeather = j['list'][i]['weather'][0]['main'];
-    hfc.unixTime = j['list'][i]['dt'].toString();
-    hfc.temp = double.parse(j['list'][i]['main']['temp'].toString())
+    hfc.mainWeather = j?['list'][i]['weather'][0]['main'] ?? 'Error';
+    hfc.unixTime = j?['list'][i]['dt'].toString() ?? '1';
+    hfc.temp = double.parse(j?['list'][i]['main']['temp'].toString() ?? '1000')
         .round()
         .toString();
     hfc.convertUnixTime();
     futureForeCast.add(hfc);
   }
-
-  /*futureForeCast.forEach((element) {
-    print(
-        'futureforecasts $i, mainWeather: ${element.mainWeather} temp: ${element.temp}, time: ${element.time}');
-    i++;
-  });*/
 }
 
 class HourlyForecast extends StatelessWidget {
   final mainWeather;
   final temp;
   final time;
-  const HourlyForecast(
-      {super.key,
-      required this.mainWeather,
-      required this.temp,
-      required this.time});
+  final int index;
+  const HourlyForecast({
+    super.key,
+    required this.mainWeather,
+    required this.temp,
+    required this.time,
+    required this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300 + (index * 100)),
+        curve: Curves.fastOutSlowIn,
         constraints: BoxConstraints(
           maxHeight: 110,
           maxWidth: 60,
           minWidth: 50,
         ),
         decoration: divDecoration,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              chooseIcon(mainWeather),
-              color: IconColor,
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(mainWeather, style: smallSB),
-            SizedBox(
-              height: 5,
-            ),
-            Text('${temp} °C', style: smallSB),
-            Text(time, style: smallSB),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                chooseIcon(mainWeather),
+                color: IconColor,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(mainWeather, style: smallSB),
+              SizedBox(
+                height: 5,
+              ),
+              Text('${temp} °C', style: smallSB),
+              Text(time, style: smallSB),
+            ],
+          ),
         ),
       ),
     );
@@ -192,9 +190,8 @@ Widget futureForecastWidget = SizedBox.expand(
           mainWeather: futureForeCast[index].mainWeather,
           temp: futureForeCast[index].temp,
           time: futureForeCast[index].time,
+          index: index,
         );
       },
-      separatorBuilder: (context, index) => SizedBox(
-            height: 100,
-          )),
+      separatorBuilder: (context, index) => SizedBox()),
 );

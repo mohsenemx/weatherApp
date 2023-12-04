@@ -1,10 +1,12 @@
-// ignore_for_file: unnecessary_new, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, prefer_const_constructors, avoid_print, unused_import, unnecessary_brace_in_string_interps, non_constant_identifier_names, unused_local_variable, unused_catch_clause
+// ignore_for_file: unnecessary_new, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, prefer_const_constructors, avoid_print, unused_import, unnecessary_brace_in_string_interps, non_constant_identifier_names, unused_local_variable, unused_catch_clause, unnecessary_overrides
 
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:weather/weather.dart';
 import 'package:weather_icons/weather_icons.dart';
+
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
@@ -16,10 +18,10 @@ final gKey = GlobalKey<ScaffoldState>();
 //
 TextStyle bigBold = TextStyle(fontFamily: 'sf', fontSize: 60);
 TextStyle mediumBold = TextStyle(fontFamily: 'sf', fontSize: 20);
-TextStyle mediumSB = TextStyle(fontFamily: 'sfsb', fontSize: 30);
+TextStyle mediumSB = TextStyle(fontFamily: 'sfsb', fontSize: 25);
 TextStyle smallSB = TextStyle(fontFamily: 'sfsb', fontSize: 15);
 BoxDecoration divDecoration = BoxDecoration(
-  color: Colors.white.withOpacity(0.4),
+  color: Colors.white.withOpacity(0.35),
   borderRadius: BorderRadius.circular(10),
 );
 double IconSize = 60;
@@ -27,22 +29,15 @@ Color? IconColor = Colors.grey[900];
 WeatherFactory wf = new WeatherFactory(WeatherAPIKey);
 Weather? w;
 bool useNight = false;
-IconData? mainIcon;
-String? countryname;
-String? temperature;
-String? tempfeelslike;
-String? humidity;
-String? windSpeed;
-String? mainWeather;
-String? weatherDescription;
-String? nowHour;
-String? pressure;
-String? sunrise;
-String? sunset;
+IconData? localIcon;
 Gradient? background = Gradient.lerp(gar1, gar2, 0.5);
+
+WeatherData current_weather = new WeatherData();
 List<String> settings = ['No city set'];
+
 void setStorage() {
   box.put('settings', settings);
+  box.put('lastWeather', current_weather);
 }
 
 void loadStorage() {
@@ -50,6 +45,11 @@ void loadStorage() {
     // todo
   } else {
     settings = box.get('settings');
+  }
+  if (box.get('lastWeather') == null) {
+    // todo
+  } else {
+    current_weather = box.get('lastWeather');
   }
 }
 
@@ -64,19 +64,29 @@ Future<void> getWeatherData(String cityName) async {
     print(e);
   }
 
-  temperature = w?.temperature?.celsius?.round().toString() ?? 'Error';
-  tempfeelslike = w?.tempFeelsLike?.celsius?.round().toString() ?? 'Error';
-  humidity = w?.humidity?.round().toString() ?? 'Error';
-  windSpeed = ((w?.windSpeed ?? 1) * 3.6).round().toString();
-  countryname = w?.country ?? 'Error';
-  mainWeather = w?.weatherMain ?? 'Error';
-  weatherDescription = w?.weatherDescription?.toString() ?? 'Error';
-  pressure = ((w?.pressure ?? 1000) / 1000).toString();
-  sunrise = '${w?.sunrise?.hour.toString()}:${w?.sunrise?.minute.toString()}';
-  sunset = '${w?.sunset?.hour.toString()}:${w?.sunset?.minute.toString()}';
+  current_weather.temperature =
+      w?.temperature?.celsius?.round().toString() ?? 'Error';
+  current_weather.tempfeelslike =
+      w?.tempFeelsLike?.celsius?.round().toString() ?? 'Error';
+  current_weather.humidity = w?.humidity?.round().toString() ?? 'Error';
+  current_weather.windSpeed = ((w?.windSpeed ?? 1) * 3.6).round().toString();
+  current_weather.countryname = w?.country ?? 'Error';
+  current_weather.mainWeather = w?.weatherMain ?? 'Error';
+  current_weather.weatherDescription =
+      w?.weatherDescription?.toString() ?? 'Error';
+  current_weather.pressure = ((w?.pressure ?? 1000) / 1000).toString();
+  current_weather.sunrise =
+      '${w?.sunrise?.hour.toString()}:${w?.sunrise?.minute.toString()}';
+  current_weather.sunset =
+      '${w?.sunset?.hour.toString()}:${w?.sunset?.minute.toString()}';
   List<String> formattedTime =
-      DateFormat.Hm().format(w?.date ?? DateTime.now()).split(':');
-  nowHour = formattedTime[0];
+      DateFormat.Hm().format(DateTime.now()).split(':');
+  current_weather.lastUpdated = formattedTime[0];
+  DateTime date = DateTime.now();
+  current_weather.lastUpdatedFull =
+      '${DateFormat.EEEE().format(date)}, ${date.hour}:${date.minute}';
+  current_weather.mainIcon = current_weather.mainWeather;
+  localIcon = chooseIcon(current_weather.mainIcon ?? 'nodata');
 }
 
 class HomeScreen extends StatefulWidget {
@@ -87,8 +97,59 @@ class HomeScreen extends StatefulWidget {
   void f() {}
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  final myController = TextEditingController();
+  late String userData;
+  Future<void> _showDialog(context) async {
+    return showDialog<void>(
+      context: context,
+      //barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Column(
+            children: [
+              TextField(
+                controller: myController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Set a city name',
+                  hintText: 'Set a city name',
+                ),
+              ),
+              SizedBox(
+                width: 125,
+                child: TextButton(
+                  child: const Text('OK'),
+                  onPressed: () async {
+                    userData = myController.text;
+
+                    setStorage();
+                    setState(() {
+                      getData();
+                      settings[0] = (userData != '') ? userData : "No city set";
+                    });
+
+                    print(settings[0]);
+                    myController.text = '';
+
+                    FocusManager.instance.primaryFocus?.unfocus();
+
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   TextEditingController? cityName;
+  AnimationController? iconAnimation;
+  bool tt = true;
+  late final Animation<Offset> _offsetAnimation;
   @override
   void initState() {
     super.initState();
@@ -117,13 +178,29 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Color.fromRGBO(192, 192, 192, 0.949));
     }
     cityName = new TextEditingController();
+    iconAnimation =
+        new AnimationController(vsync: this, duration: Duration(seconds: 1));
+
+    _offsetAnimation = Tween<Offset>(
+      begin: Offset(-6, 0),
+      end: Offset(0.0, 0),
+    ).animate(CurvedAnimation(parent: iconAnimation!, curve: Curves.linear));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        iconAnimation!.forward();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    iconAnimation!.dispose();
+    cityName!.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    setState(() {
-      getData();
-    });
     return RefreshIndicator(
       displacement: 10,
       backgroundColor: Colors.white,
@@ -132,14 +209,15 @@ class _HomeScreenState extends State<HomeScreen> {
           getWeatherData(settings[0]);
           getCountrybyCity(settings[0]);
         });
+        setStorage();
         Future.delayed(Duration(seconds: 3));
       },
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height,
-          maxWidth: MediaQuery.of(context).size.width,
+          minHeight: MediaQuery.of(context).size.height,
         ),
         decoration: BoxDecoration(
+          //color: Colors.transparent,
           gradient: background,
         ),
         child: SingleChildScrollView(
@@ -147,100 +225,134 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width + 10,
+                  maxHeight: 30,
+                ),
+                child: Stack(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${current_weather.countryname}, ',
+                          style: mediumSB,
+                        ),
+                        Text(settings[0], style: mediumSB),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _showDialog(context);
+                                getData();
+                              });
+
+                              if (wrongCity) {
+                                showSnackBar('City not found', context);
+                                wrongCity = false;
+                              }
+                              setState(() {});
+                            },
+                            icon: Icon(Icons.search, color: IconColor))
+                      ],
+                    ),
+                  ],
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    height: 400,
+                    height: 200,
                   ),
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            mainIcon,
-                            color: IconColor,
-                            size: IconSize,
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            temperature ?? "Error",
-                            style: bigBold,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 15,
+                  SizedBox(
+                    height: 150,
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SlideTransition(
+                              position: _offsetAnimation,
+                              child: Icon(
+                                localIcon,
+                                color: IconColor,
+                                size: IconSize,
                               ),
-                              Text(
-                                ' °C',
-                                style: mediumBold,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              current_weather.temperature ?? "Error",
+                              style: bigBold,
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                Text(
+                                  ' °C',
+                                  style: mediumBold,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Center(
+                              child: Text(
+                                '${current_weather.mainWeather}',
+                                style: mediumSB,
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Center(
-                            child: Text(
-                              '${mainWeather}',
-                              style: mediumSB,
                             ),
-                          ),
-                          Center(
-                            child: Text(
-                              'Feels like ${tempfeelslike} °C',
-                              style: mediumBold,
+                            Center(
+                              child: Text(
+                                'Feels like ${current_weather.tempfeelslike} °C',
+                                style: mediumSB,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Sunrise: ${sunrise}',
-                        style: smallSB,
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    width: 100,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Sunset:  ${sunset}',
-                        style: smallSB,
-                      ),
-                    ],
-                  )
+                  Text('Sunrise: ${current_weather.sunrise}', style: smallSB),
+                  Text('Sunset: ${current_weather.sunset}', style: smallSB),
                 ],
+              ),
+              Center(
+                child: Text('Last Updated: ${current_weather.lastUpdatedFull}',
+                    style: smallSB),
               ),
               SizedBox(
                 height: 15,
               ),
               SizedBox(
-                height: 110,
+                height: 130,
                 width: MediaQuery.of(context).size.width - 20,
                 child: futureForecastWidget,
               ),
@@ -266,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 15,
                     ),
                     Text(
-                      'Humidity:   ${humidity}%',
+                      'Humidity:   ${current_weather.humidity}%',
                       style: smallSB,
                     ),
                   ],
@@ -294,35 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 15,
                     ),
                     Text(
-                      'Wind Speed:   ${windSpeed} km/h',
-                      style: smallSB,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: 55,
-                  maxWidth: 350,
-                ),
-                decoration: divDecoration,
-                child: Row(
-                  // Show long description of current weather
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.abc,
-                      color: IconColor,
-                    ),
-                    SizedBox(
-                      width: 15,
-                    ),
-                    Text(
-                      weatherDescription!,
+                      'Wind Speed:   ${current_weather.windSpeed} km/h',
                       style: smallSB,
                     ),
                   ],
@@ -350,15 +434,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 15,
                     ),
                     Text(
-                      '${pressure!} atm',
+                      '${current_weather.pressure!} atm',
                       style: smallSB,
                     ),
                   ],
                 ),
               ),
               SizedBox(
-                height: 15,
+                height: 35,
               ),
+              Text('Made by MohsenEMX', style: smallSB)
             ],
           ),
         ),

@@ -3,10 +3,42 @@
 import 'package:flutter/material.dart';
 import 'package:weatherapp/homescreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'package:path_provider/path_provider.dart';
 import './utils.dart';
+part 'main.g.dart';
 
 var box;
+
+@HiveType(typeId: 0)
+class WeatherData {
+  @HiveField(0)
+  String? mainIcon;
+  @HiveField(1)
+  String? countryname;
+  @HiveField(2)
+  String? temperature;
+  @HiveField(3)
+  String? tempfeelslike;
+  @HiveField(4)
+  String? humidity;
+  @HiveField(5)
+  String? windSpeed;
+  @HiveField(6)
+  String? mainWeather;
+  @HiveField(7)
+  String? weatherDescription;
+  @HiveField(8)
+  String? pressure;
+  @HiveField(9)
+  String? sunrise;
+  @HiveField(10)
+  String? sunset;
+  @HiveField(11)
+  String? lastUpdated;
+  @HiveField(12)
+  String? lastUpdatedFull;
+}
+
 Future<void> initStorage() async {
   box = await Hive.openBox('settings');
   // ar wtf = Hive.box('todo_storage');
@@ -16,8 +48,8 @@ Future<void> initStorage() async {
 Future<void> getData() async {
   //countryname = await getCountrybyCity(settings[0]);
   await getWeatherData(settings[0]);
-  mainIcon = await chooseIcon(mainWeather!);
-  if (int.parse(nowHour!) > 18) {
+  localIcon = await chooseIcon(current_weather.mainIcon ?? 'nodata');
+  if (int.parse(current_weather.lastUpdated ?? '12') > 18) {
     useNight = true;
   } else {
     useNight = false;
@@ -35,33 +67,45 @@ LinearGradient gar2 = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.bottomRight);
 
-LinearGradient gar3 = LinearGradient(colors: [
-  Color.fromARGB(255, 18, 0, 83).withOpacity(0.87),
-  Color.fromARGB(255, 8, 0, 83).withOpacity(0.8),
-], begin: Alignment.topLeft, end: Alignment.center);
+LinearGradient gar3 = LinearGradient(
+  colors: [
+    Color.fromRGBO(99, 89, 133, 1),
+    Color.fromRGBO(68, 60, 104, 1),
+  ],
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+);
 LinearGradient gar4 = LinearGradient(
   colors: [
-    Color.fromRGBO(19, 19, 71, 0.861),
-    Color.fromARGB(255, 1, 36, 88).withOpacity(0.86),
-    Color.fromARGB(133, 14, 0, 78).withOpacity(0.82),
+    Color.fromRGBO(57, 48, 83, 1),
+    Color.fromRGBO(24, 18, 43, 1),
   ],
-  begin: Alignment.center,
-  end: Alignment.bottomRight,
+  begin: Alignment.topRight,
+  end: Alignment.bottomLeft,
 );
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
+  final appDocumentsDir = await getApplicationDocumentsDirectory();
+  String path = appDocumentsDir.path;
+
+  Hive
+    ..init(path)
+    ..registerAdapter<WeatherData>(WeatherDataAdapter());
+  //Hive.registerAdapter(WeatherDataAdapter());
+  //Hive.init(path).registerAdapter(WeatherDataAdapter());
+
   await initStorage();
   loadStorage();
   await getData();
-  await getCountrybyCity(settings[0]);
+  await getCountrybyCity(settings[0]); // call to determine the geo location
   await getNext5Hours(settings[0]);
-  scheduledCall();
   runApp(MainApp());
 }
 
-Future<void> scheduledCall() async {
-  gKey.currentState?.setState(() {});
+Future<void> scheduledCall(void d) async {
+  gKey.currentState?.setState(() {
+    d;
+  });
 }
 
 class MainApp extends StatelessWidget {
@@ -84,52 +128,6 @@ class HomeWidget extends StatefulWidget {
 }
 
 class _HomeWidgetState extends State<HomeWidget> {
-  Future<void> _showDialog(context) async {
-    return showDialog<void>(
-      context: context,
-      //barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Column(
-            children: [
-              TextField(
-                controller: myController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Set a city name',
-                  hintText: 'Set a city name',
-                ),
-              ),
-              SizedBox(
-                width: 125,
-                child: TextButton(
-                  child: const Text('OK'),
-                  onPressed: () async {
-                    userData = myController.text;
-
-                    setState(() {
-                      getData();
-                      settings[0] = (userData != '') ? userData : "No city set";
-                    });
-                    setStorage();
-                    await scheduledCall();
-                    print(settings[0]);
-                    myController.text = '';
-
-                    FocusManager.instance.primaryFocus?.unfocus();
-
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -140,40 +138,11 @@ class _HomeWidgetState extends State<HomeWidget> {
     return Scaffold(
       key: gKey,
       body: HomeScreen(),
+      //backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0.0,
-        title: Padding(
-          padding: const EdgeInsets.only(left: 48),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${countryname}, ',
-                style: mediumSB,
-              ),
-              Text(settings[0], style: mediumSB),
-            ],
-          ),
-        ),
         forceMaterialTransparency: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _showDialog(context);
-                getData();
-              });
-
-              if (wrongCity) {
-                showSnackBar('City not found', context);
-                wrongCity = false;
-              }
-              setState(() {});
-            },
-            icon: Icon(Icons.search, color: IconColor),
-          ),
-        ],
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
@@ -182,6 +151,3 @@ class _HomeWidgetState extends State<HomeWidget> {
     );
   }
 }
-
-final myController = TextEditingController();
-late String userData;
