@@ -5,5 +5,6 @@ A simple weather app made in flutter
 
 # Todo
 - [x] Basic functionality
+- [x] Sign APK and get ready for appstore release
 - [ ] User tutorials
 - [ ] i18n
