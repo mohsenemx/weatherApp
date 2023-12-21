@@ -17,13 +17,16 @@ import './secret.dart';
 final gKey = GlobalKey<ScaffoldState>();
 //
 TextStyle bigBold = TextStyle(fontFamily: 'sf', fontSize: 60);
+TextStyle mediumBigBold = TextStyle(fontFamily: 'sf', fontSize: 35);
 TextStyle mediumBold = TextStyle(fontFamily: 'sf', fontSize: 20);
+TextStyle mediumSSB = TextStyle(fontFamily: 'sfsb', fontSize: 17);
 TextStyle mediumSB = TextStyle(fontFamily: 'sfsb', fontSize: 25);
 TextStyle smallSB = TextStyle(fontFamily: 'sfsb', fontSize: 15);
 BoxDecoration divDecoration = BoxDecoration(
   color: Colors.white.withOpacity(0.35),
   borderRadius: BorderRadius.circular(10),
 );
+Color DivColor = Colors.white.withOpacity(0.80);
 double IconSize = 60;
 Color? IconColor = Colors.grey[900];
 WeatherFactory wf = new WeatherFactory(WeatherAPIKey);
@@ -70,6 +73,7 @@ Future<void> getWeatherData(String cityName) async {
       w?.tempFeelsLike?.celsius?.round().toString() ?? 'Error';
   current_weather.humidity = w?.humidity?.round().toString() ?? 'Error';
   current_weather.windSpeed = ((w?.windSpeed ?? 1) * 3.6).round().toString();
+  current_weather.windDeg = w?.windDegree?.round() ?? 1;
   current_weather.countryname = w?.country ?? 'Error';
   current_weather.mainWeather = w?.weatherMain ?? 'Error';
   current_weather.weatherDescription =
@@ -127,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     setStorage();
                     setState(() {
                       getData();
+                      getNext5Hours(userData);
                       settings[0] = (userData != '') ? userData : "No city set";
                     });
 
@@ -159,6 +164,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           fontFamily: 'sf',
           fontSize: 60,
           color: Color.fromRGBO(192, 192, 192, 0.949));
+      mediumBigBold = TextStyle(
+          fontFamily: 'sf',
+          fontSize: 35,
+          color: Color.fromRGBO(192, 192, 192, 0.949));
+
       mediumBold = TextStyle(
           fontFamily: 'sf',
           fontSize: 20,
@@ -166,6 +176,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       mediumSB = TextStyle(
           fontFamily: 'sfsb',
           fontSize: 30,
+          color: Color.fromRGBO(192, 192, 192, 0.949));
+      mediumSSB = TextStyle(
+          fontFamily: 'sfsb',
+          fontSize: 17,
           color: Color.fromRGBO(192, 192, 192, 0.949));
       IconColor = Color.fromRGBO(192, 192, 192, 0.949);
       divDecoration = BoxDecoration(
@@ -176,7 +190,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           fontFamily: 'sfsb',
           fontSize: 15,
           color: Color.fromRGBO(192, 192, 192, 0.949));
+      DivColor = Colors.black.withOpacity(0.45);
     }
+
     cityName = new TextEditingController();
     iconAnimation =
         new AnimationController(vsync: this, duration: Duration(seconds: 1));
@@ -187,7 +203,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ).animate(CurvedAnimation(parent: iconAnimation!, curve: Curves.linear));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
-        iconAnimation!.forward();
+        //iconAnimation!.forward();
+        // the above line will run the animation, disabled for now
       });
     });
   }
@@ -275,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     height: 200,
                   ),
                   SizedBox(
-                    height: 150,
+                    height: 160,
                     child: Column(
                       children: [
                         Row(
@@ -325,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             Center(
                               child: Text(
                                 'Feels like ${current_weather.tempfeelslike} °C',
-                                style: mediumSB,
+                                style: mediumSSB,
                               ),
                             ),
                           ],
@@ -398,8 +415,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.air,
+                    WindIcon(
+                      degree: current_weather.windDeg ?? 1,
                       color: IconColor,
                     ),
                     SizedBox(

@@ -29,13 +29,14 @@ class WeatherDataAdapter extends TypeAdapter<WeatherData> {
       ..sunrise = fields[9] as String?
       ..sunset = fields[10] as String?
       ..lastUpdated = fields[11] as String?
-      ..lastUpdatedFull = fields[12] as String?;
+      ..lastUpdatedFull = fields[12] as String?
+      ..windDeg = fields[13] as int?;
   }
 
   @override
   void write(BinaryWriter writer, WeatherData obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.mainIcon)
       ..writeByte(1)
@@ -61,7 +62,9 @@ class WeatherDataAdapter extends TypeAdapter<WeatherData> {
       ..writeByte(11)
       ..write(obj.lastUpdated)
       ..writeByte(12)
-      ..write(obj.lastUpdatedFull);
+      ..write(obj.lastUpdatedFull)
+      ..writeByte(13)
+      ..write(obj.windDeg);
   }
 
   @override

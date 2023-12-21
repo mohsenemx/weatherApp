@@ -37,6 +37,8 @@ class WeatherData {
   String? lastUpdated;
   @HiveField(12)
   String? lastUpdatedFull;
+  @HiveField(13)
+  int? windDeg;
 }
 
 Future<void> initStorage() async {
@@ -115,6 +117,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: "Weather App",
       home: HomeWidget(),
     );
   }
@@ -148,6 +151,7 @@ class _HomeWidgetState extends State<HomeWidget> {
       ),
       extendBodyBehindAppBar: true,
       resizeToAvoidBottomInset: false,
+       
     );
   }
 }

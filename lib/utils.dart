@@ -85,6 +85,10 @@ void showSnackBar(String message, context) {
 class HourlyForecastClass {
   String? mainWeather;
   String? temp;
+  String? humidity;
+  String? windSpeed;
+  String? windDeg;
+  String? feelsLike;
   String? unixTime;
   String? time;
   String? a;
@@ -111,6 +115,7 @@ Future<void> getNext5Hours(cityName) async {
         'https://api.openweathermap.org/data/2.5/forecast?lat=${cLat}&lon=${cLon}&appid=${WeatherAPIKey}&units=metric&cnt=10'));
     //print(a.body);
     j = jsonDecode(a.body);
+    print(j);
   } on http.ClientException catch (e) {
     print(e);
   }
@@ -119,6 +124,10 @@ Future<void> getNext5Hours(cityName) async {
     HourlyForecastClass hfc = HourlyForecastClass();
     hfc.mainWeather = j?['list'][i]['weather'][0]['main'] ?? 'Error';
     hfc.unixTime = j?['list'][i]['dt'].toString() ?? '1';
+    hfc.feelsLike = j?['list'][i]['main']['feels_like'].toStringAsFixed(1);
+    hfc.windSpeed = j?['list'][i]['wind']['speed'].toString() ?? 'Error';
+    hfc.windDeg = j?['list'][i]['wind']['deg'].toString() ?? '1';
+    hfc.humidity = j?['list'][i]['main']['humidity'].toString() ?? 'Error';
     hfc.temp = double.parse(j?['list'][i]['main']['temp'].toString() ?? '1000')
         .round()
         .toString();
@@ -131,12 +140,20 @@ class HourlyForecast extends StatelessWidget {
   final mainWeather;
   final temp;
   final time;
+  final humidity;
+  final windSpeed;
+  final windDeg;
+  final feelsLike;
   final int index;
   const HourlyForecast({
     super.key,
     required this.mainWeather,
     required this.temp,
     required this.time,
+    required this.humidity,
+    required this.windSpeed,
+    required this.windDeg,
+    required this.feelsLike,
     required this.index,
   });
 
@@ -155,24 +172,30 @@ class HourlyForecast extends StatelessWidget {
         decoration: divDecoration,
         child: Padding(
           padding: const EdgeInsets.all(5.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                chooseIcon(mainWeather),
-                color: IconColor,
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(mainWeather, style: smallSB),
-              SizedBox(
-                height: 5,
-              ),
-              Text('${temp} °C', style: smallSB),
-              Text(time, style: smallSB),
-            ],
+          child: GestureDetector(
+            onTap: () {
+              showTempDiag(context, temp, mainWeather, feelsLike, humidity,
+                  time, windSpeed, windDeg);
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  chooseIcon(mainWeather),
+                  color: IconColor,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(mainWeather, style: smallSB),
+                SizedBox(
+                  height: 5,
+                ),
+                Text('${temp} °C', style: smallSB),
+                Text(time, style: smallSB),
+              ],
+            ),
           ),
         ),
       ),
@@ -190,8 +213,77 @@ Widget futureForecastWidget = SizedBox.expand(
           mainWeather: futureForeCast[index].mainWeather,
           temp: futureForeCast[index].temp,
           time: futureForeCast[index].time,
+          humidity: futureForeCast[index].humidity,
+          windSpeed: futureForeCast[index].windSpeed,
+          windDeg: futureForeCast[index].windDeg,
+          feelsLike: futureForeCast[index].feelsLike,
           index: index,
         );
       },
       separatorBuilder: (context, index) => SizedBox()),
 );
+Future<void> showTempDiag(
+  context,
+  String temp,
+  String weather,
+  String feelsLike,
+  String humidity,
+  String time,
+  String windSpeed,
+  String windDeg,
+) async {
+  IconData weatherIcon = chooseIcon(weather);
+  int windDegInt = int.parse(windDeg);
+  String windSpeedDouble = (double.parse(windSpeed) * 3.6).toStringAsFixed(1);
+  return showDialog<void>(
+    context: context,
+    //barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: DivColor,
+        elevation: 5,
+        title: Column(
+          children: [
+            Text(
+              time,
+              style: mediumSSB,
+            ),
+            SizedBox(
+              height: 5,
+            ),
+            Text('${temp} °C', style: mediumBigBold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(weatherIcon, color: IconColor,),
+                SizedBox(
+                  width: 5,
+                ),
+                Text(weather, style: mediumSB),
+              ],
+            ),
+            Text(
+              'Feels like ${feelsLike} °C',
+              style: smallSB,
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                WindIcon(degree: windDegInt, color: IconColor,),
+                SizedBox(
+                  width: 5,
+                ),
+                Text('${windSpeedDouble} km/h', style: smallSB),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
