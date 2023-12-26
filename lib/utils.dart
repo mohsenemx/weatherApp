@@ -48,7 +48,7 @@ IconData chooseIcon(String name) {
     return WeatherIcons.rain;
   } else if (name == 'Clear') {
     if (useNight) {
-      return WeatherIcons.night_clear;
+      return WeatherIcons.moon_waning_crescent_6;
     } else {
       return WeatherIcons.day_sunny;
     }
@@ -60,8 +60,9 @@ IconData chooseIcon(String name) {
     return WeatherIcons.fog;
   } else if (name == 'nodata') {
     return WeatherIcons.night_fog;
+  } else {
+    return Icons.check_box;
   }
-  return IconData(0);
 }
 
 void showSnackBar(String message, context) {
@@ -256,7 +257,10 @@ Future<void> showTempDiag(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(weatherIcon, color: IconColor,),
+                Icon(
+                  weatherIcon,
+                  color: IconColor,
+                ),
                 SizedBox(
                   width: 5,
                 ),
@@ -274,7 +278,10 @@ Future<void> showTempDiag(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                WindIcon(degree: windDegInt, color: IconColor,),
+                WindIcon(
+                  degree: windDegInt,
+                  color: IconColor,
+                ),
                 SizedBox(
                   width: 5,
                 ),

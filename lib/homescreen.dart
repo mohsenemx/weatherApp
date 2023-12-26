@@ -152,9 +152,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   TextEditingController? cityName;
-  AnimationController? iconAnimation;
-  bool tt = true;
-  late final Animation<Offset> _offsetAnimation;
   @override
   void initState() {
     super.initState();
@@ -194,25 +191,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
 
     cityName = new TextEditingController();
-    iconAnimation =
-        new AnimationController(vsync: this, duration: Duration(seconds: 1));
-
-    _offsetAnimation = Tween<Offset>(
-      begin: Offset(-6, 0),
-      end: Offset(0.0, 0),
-    ).animate(CurvedAnimation(parent: iconAnimation!, curve: Curves.linear));
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        //iconAnimation!.forward();
-        // the above line will run the animation, disabled for now
-      });
+     
     });
   }
 
   @override
   void dispose() {
     super.dispose();
-    iconAnimation!.dispose();
     cityName!.dispose();
   }
 
@@ -299,13 +286,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SlideTransition(
-                              position: _offsetAnimation,
-                              child: Icon(
-                                localIcon,
-                                color: IconColor,
-                                size: IconSize,
-                              ),
+                            Icon(
+                              localIcon,
+                              color: IconColor,
+                              size: IconSize,
                             ),
                             SizedBox(
                               width: 10,
