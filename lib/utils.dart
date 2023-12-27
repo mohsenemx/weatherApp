@@ -5,6 +5,7 @@ import 'package:weather_icons/weather_icons.dart';
 import './secret.dart';
 import './main.dart';
 import './homescreen.dart';
+import 'locales.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -12,7 +13,6 @@ import 'package:http/http.dart' as http;
 bool wrongCity = false;
 String? cLat;
 String? cLon;
-
 Future<String> getCountrybyCity(String cityName) async {
   var a;
   var j;
@@ -55,7 +55,7 @@ IconData chooseIcon(String name) {
     return WeatherIcons.rain;
   } else if (name == 'Clear') {
     if (useNight) {
-      return WeatherIcons.moon_waning_crescent_6;
+      return WeatherIcons.moon_waning_crescent_4;
     } else {
       return WeatherIcons.day_sunny;
     }
@@ -125,7 +125,6 @@ Future<void> getNext5Hours(cityName) async {
         'https://api.openweathermap.org/data/2.5/forecast?lat=${cLat}&lon=${cLon}&appid=${WeatherAPIKey}&units=metric&cnt=10'));
     //print(a.body);
     j = jsonDecode(a.body);
-    print(j);
   } on http.ClientException catch (e) {
     logger.warn('Failed to fetch forecast data ${e.message}');
     print(e);
@@ -145,6 +144,7 @@ Future<void> getNext5Hours(cityName) async {
     hfc.convertUnixTime();
     futureForeCast.add(hfc);
   }
+  language.translateWeathersLoop(futureForeCast);
 }
 
 class HourlyForecast extends StatelessWidget {
@@ -185,8 +185,17 @@ class HourlyForecast extends StatelessWidget {
           padding: const EdgeInsets.all(5.0),
           child: GestureDetector(
             onTap: () {
-              showTempDiag(context, temp, mainWeather, feelsLike, humidity,
-                  time, windSpeed, windDeg);
+              showTempDiag(
+                context,
+                index,
+                temp,
+                mainWeather,
+                feelsLike,
+                humidity,
+                time,
+                windSpeed,
+                windDeg,
+              );
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -199,11 +208,11 @@ class HourlyForecast extends StatelessWidget {
                 SizedBox(
                   height: 10,
                 ),
-                Text(mainWeather, style: smallSB),
+                Text(language.futureMainWeathers[index], style: smallSB),
                 SizedBox(
                   height: 5,
                 ),
-                Text('${temp} °C', style: smallSB),
+                Text('$temp °C', style: smallSB),
                 Text(time, style: smallSB),
               ],
             ),
@@ -235,6 +244,7 @@ Widget futureForecastWidget = SizedBox.expand(
 );
 Future<void> showTempDiag(
   context,
+  int index,
   String temp,
   String weather,
   String feelsLike,
@@ -274,13 +284,22 @@ Future<void> showTempDiag(
                 SizedBox(
                   width: 5,
                 ),
-                Text(weather, style: mediumSB),
+                Text(language.futureMainWeathers[index], style: mediumSB),
               ],
             ),
-            Text(
-              '${language.feelsLike} ${feelsLike} °C',
-              style: smallSB,
-            ),
+            Builder(builder: (context) {
+              if (language.currentLanguage == "fa") {
+                return Text(
+                  ' ${current_weather.tempfeelslike} °C  ${language.feelsLike} ',
+                  style: mediumSSB,
+                );
+              } else {
+                return Text(
+                  '${language.feelsLike} ${current_weather.tempfeelslike} °C',
+                  style: mediumSSB,
+                );
+              }
+            }),
             SizedBox(
               height: 15,
             ),
@@ -295,7 +314,7 @@ Future<void> showTempDiag(
                 SizedBox(
                   width: 5,
                 ),
-                Text('${windSpeedDouble} km/h', style: smallSB),
+                Text('${windSpeedDouble} ${language.kmh}', style: smallSB),
               ],
             ),
           ],

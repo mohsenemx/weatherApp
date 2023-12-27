@@ -6,22 +6,46 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:weather/weather.dart';
 import 'package:weather_icons/weather_icons.dart';
-
+//import 'package:flutter_localization/flutter_localization.dart' as loc;
 import 'package:http/http.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 import 'dart:async';
 import './main.dart';
 import './utils.dart';
 import './secret.dart';
 
 final gKey = GlobalKey<ScaffoldState>();
-//
-TextStyle bigBold = TextStyle(fontFamily: 'sf', fontSize: 60);
-TextStyle mediumBigBold = TextStyle(fontFamily: 'sf', fontSize: 35);
-TextStyle mediumBold = TextStyle(fontFamily: 'sf', fontSize: 20);
-TextStyle mediumSSB = TextStyle(fontFamily: 'sfsb', fontSize: 17);
-TextStyle mediumSB = TextStyle(fontFamily: 'sfsb', fontSize: 25);
-TextStyle smallSB = TextStyle(fontFamily: 'sfsb', fontSize: 15);
+
+TextStyle bigBold = TextStyle(
+  fontFamily: 'sf',
+  fontSize: 60,
+  fontFamilyFallback: ['vazir'],
+);
+TextStyle mediumBigBold = TextStyle(
+  fontFamily: 'sf',
+  fontSize: 35,
+  fontFamilyFallback: ['vazir'],
+);
+TextStyle mediumBold = TextStyle(
+  fontFamily: 'sf',
+  fontSize: 20,
+  fontFamilyFallback: ['vazir'],
+);
+TextStyle mediumSSB = TextStyle(
+  fontFamily: 'sfsb',
+  fontSize: 17,
+  fontFamilyFallback: ['vazir'],
+);
+TextStyle mediumSB = TextStyle(
+  fontFamily: 'sfsb',
+  fontSize: 25,
+  fontFamilyFallback: ['vazir'],
+);
+TextStyle smallSB = TextStyle(
+  fontFamily: 'sfsb',
+  fontSize: 15,
+  fontFamilyFallback: ['vazir'],
+);
 BoxDecoration divDecoration = BoxDecoration(
   color: Colors.white.withOpacity(0.35),
   borderRadius: BorderRadius.circular(10),
@@ -34,7 +58,7 @@ Weather? w;
 bool useNight = false;
 IconData? localIcon;
 Gradient? background = Gradient.lerp(gar1, gar2, 0.5);
-
+TextDirection textdir = TextDirection.ltr;
 WeatherData current_weather = new WeatherData();
 List<String> settings = ['No city set'];
 
@@ -83,15 +107,15 @@ Future<void> getWeatherData(String cityName) async {
       w?.weatherDescription?.toString() ?? 'Error';
   current_weather.pressure = ((w?.pressure ?? 1000) / 1000).toString();
   current_weather.sunrise =
-      '${w?.sunrise?.hour.toString()}:${w?.sunrise?.minute.toString()}';
+      '${w?.sunrise?.hour.toString()}:${w?.sunrise?.minute.toString().padLeft(2, '0')}';
   current_weather.sunset =
-      '${w?.sunset?.hour.toString()}:${w?.sunset?.minute.toString()}';
+      '${w?.sunset?.hour.toString()}:${w?.sunset?.minute.toString().padLeft(2, '0')}';
   List<String> formattedTime =
-      DateFormat.Hm().format(DateTime.now()).split(':');
+      intl.DateFormat.Hm().format(DateTime.now()).split(':');
   current_weather.lastUpdated = formattedTime[0];
   DateTime date = DateTime.now();
   current_weather.lastUpdatedFull =
-      '${DateFormat.EEEE().format(date)}, ${date.hour}:${date.minute}';
+      '${intl.DateFormat.EEEE().format(date)}, ${date.hour}:${date.minute}';
   current_weather.mainIcon = current_weather.mainWeather;
   localIcon = chooseIcon(current_weather.mainIcon ?? 'nodata');
 }
@@ -167,22 +191,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       bigBold = TextStyle(
           fontFamily: 'sf',
           fontSize: 60,
+          fontFamilyFallback: ['vazir'],
           color: Color.fromRGBO(192, 192, 192, 0.949));
       mediumBigBold = TextStyle(
           fontFamily: 'sf',
           fontSize: 35,
+          fontFamilyFallback: ['vazir'],
           color: Color.fromRGBO(192, 192, 192, 0.949));
 
       mediumBold = TextStyle(
           fontFamily: 'sf',
           fontSize: 20,
+          fontFamilyFallback: ['vazir'],
           color: Color.fromRGBO(192, 192, 192, 0.949));
       mediumSB = TextStyle(
           fontFamily: 'sfsb',
           fontSize: 30,
+          fontFamilyFallback: ['vazir'],
           color: Color.fromRGBO(192, 192, 192, 0.949));
       mediumSSB = TextStyle(
           fontFamily: 'sfsb',
+          fontFamilyFallback: ['vazir'],
           fontSize: 17,
           color: Color.fromRGBO(192, 192, 192, 0.949));
       IconColor = Color.fromRGBO(192, 192, 192, 0.949);
@@ -193,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       smallSB = TextStyle(
           fontFamily: 'sfsb',
           fontSize: 15,
+          fontFamilyFallback: ['vazir'],
           color: Color.fromRGBO(192, 192, 192, 0.949));
       DivColor = Colors.black.withOpacity(0.45);
     }
@@ -242,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Container(
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width + 10,
-                  maxHeight: 30,
+                  maxHeight: 55,
                 ),
                 child: Stack(
                   children: [
@@ -253,14 +283,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             if (language.currentLanguage == "en") {
                               setState(() {
                                 language.setPersian();
+                                language.translateWeathersLoop(futureForeCast);
+                                textdir = TextDirection.rtl;
                               });
                             } else if (language.currentLanguage == "fa") {
                               setState(() {
                                 language.setEnglish();
+                                language.translateWeathersLoop(futureForeCast);
+                                textdir = TextDirection.ltr;
                               });
                             }
                           },
-                          icon: Icon(Icons.translate_outlined),
+                          icon:
+                              Icon(Icons.translate_outlined, color: IconColor),
                         ),
                       ],
                     ),
@@ -345,15 +380,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           children: [
                             Center(
                               child: Text(
-                                '${current_weather.mainWeather}',
+                                '${language.mainWeather}',
                                 style: mediumSB,
                               ),
                             ),
                             Center(
-                              child: Text(
-                                '${language.feelsLike} ${current_weather.tempfeelslike} °C',
-                                style: mediumSSB,
-                              ),
+                              child: Builder(builder: (context) {
+                                if (language.currentLanguage == "fa") {
+                                  return Text(
+                                    ' ${current_weather.tempfeelslike}°C  ${language.feelsLike} ',
+                                    style: mediumSSB,
+                                  );
+                                } else {
+                                  return Text(
+                                    '${language.feelsLike} ${current_weather.tempfeelslike} °C',
+                                    style: mediumSSB,
+                                  );
+                                }
+                              }),
                             ),
                           ],
                         ),
@@ -362,21 +406,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Text('${language.sunrise}: ${current_weather.sunrise}',
-                      style: smallSB),
-                  Text('${language.sunset}: ${current_weather.sunset}',
-                      style: smallSB),
-                ],
+              Directionality(
+                textDirection: textdir,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Text('${language.sunrise}: ${current_weather.sunrise}',
+                        style: smallSB),
+                    Text('${language.sunset}: ${current_weather.sunset}',
+                        style: smallSB),
+                  ],
+                ),
               ),
               Center(
-                child: Text(
-                    '${language.lastUpdated}: ${current_weather.lastUpdatedFull}',
-                    style: smallSB),
+                child: Directionality(
+                  textDirection: textdir,
+                  child: Text(
+                      '${language.lastUpdated}: ${current_weather.lastUpdatedFull}',
+                      style: smallSB),
+                ),
               ),
               SizedBox(
                 height: 15,
@@ -395,23 +445,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   maxWidth: 350,
                 ),
                 decoration: divDecoration,
-                child: Row(
-                  // Show humidty
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.water_drop_outlined,
-                      color: IconColor,
-                    ),
-                    SizedBox(
-                      width: 15,
-                    ),
-                    Text(
-                      '${language.humidity}:   ${current_weather.humidity}%',
-                      style: smallSB,
-                    ),
-                  ],
+                child: Directionality(
+                  textDirection: textdir,
+                  child: Row(
+                    // Show humidty
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.water_drop_outlined,
+                        color: IconColor,
+                      ),
+                      SizedBox(
+                        width: 15,
+                      ),
+                      Text(
+                        '${language.humidity}:   ${current_weather.humidity}%',
+                        style: smallSB,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(
@@ -423,23 +476,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   maxWidth: 350,
                 ),
                 decoration: divDecoration,
-                child: Row(
-                  // Show wind speed
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    WindIcon(
-                      degree: current_weather.windDeg ?? 1,
-                      color: IconColor,
-                    ),
-                    SizedBox(
-                      width: 15,
-                    ),
-                    Text(
-                      '${language.windSpeed}:   ${current_weather.windSpeed} km/h',
-                      style: smallSB,
-                    ),
-                  ],
+                child: Directionality(
+                  textDirection: textdir,
+                  child: Row(
+                    // Show wind speed
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      WindIcon(
+                        degree: current_weather.windDeg ?? 1,
+                        color: IconColor,
+                      ),
+                      SizedBox(
+                        width: 15,
+                      ),
+                      Text(
+                        '${language.windSpeed}:   ${current_weather.windSpeed} ${language.kmh}',
+                        style: smallSB,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(
@@ -451,27 +507,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   maxWidth: 350,
                 ),
                 decoration: divDecoration,
-                child: Row(
-                  // Show air pressure
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      WeatherIcons.windy,
-                      color: IconColor,
-                    ),
-                    SizedBox(
-                      width: 15,
-                    ),
-                    Text(
-                      '${language.pressure}: ${current_weather.pressure!} atm',
-                      style: smallSB,
-                    ),
-                  ],
+                child: Directionality(
+                  textDirection: textdir,
+                  child: Row(
+                    // Show air pressure
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        WeatherIcons.windy,
+                        color: IconColor,
+                      ),
+                      SizedBox(
+                        width: 15,
+                      ),
+                      Text(
+                        '${language.pressure}: ${current_weather.pressure!} ${language.atm}',
+                        style: smallSB,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(
-                height: 45,
+                height: 55,
               ),
               Text('${language.madeBy}', style: smallSB)
             ],

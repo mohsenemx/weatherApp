@@ -5,6 +5,7 @@ import 'package:weatherapp/homescreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:weatherapp/locales.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import './utils.dart';
 import 'dart:io';
 part 'main.g.dart';
@@ -134,7 +135,7 @@ currentLang language = currentLang();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await logger.getStorage();
-  language.setEnglish();
+
   final appDocumentsDir = await getApplicationDocumentsDirectory();
   String path = appDocumentsDir.path;
 
@@ -151,6 +152,7 @@ void main() async {
   await getCountrybyCity(settings[0]); // call to determine the geo location
   await getNext5Hours(settings[0]);
   logger.info('Loading GUI');
+  language.setEnglish();
   runApp(MainApp());
 }
 
@@ -167,6 +169,17 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      //locale: Locale('fa'),
+      supportedLocales: const [
+        Locale('fa'),
+        Locale('en'),
+      ],
+
       title: "Weather App",
       home: HomeWidget(),
     );
