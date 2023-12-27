@@ -1,11 +1,55 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, prefer_const_literals_to_create_immutables, prefer_typing_uninitialized_variables, unnecessary_brace_in_string_interps, use_build_context_synchronously, await_only_futures, invalid_use_of_protected_member
+// ignore_for_file: prefer_const_constructors, avoid_print, prefer_const_literals_to_create_immutables, prefer_typing_uninitialized_variables, unnecessary_brace_in_string_interps, use_build_context_synchronously, await_only_futures, invalid_use_of_protected_member, camel_case_types
 
 import 'package:flutter/material.dart';
 import 'package:weatherapp/homescreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:weatherapp/locales.dart';
 import './utils.dart';
+import 'dart:io';
 part 'main.g.dart';
+
+class fileLogger {
+  Directory? storage;
+  File? logFile;
+  String? fileName;
+  fileLogger(String fname) {
+    fileName = fname;
+  }
+  Future<void> getStorage() async {
+    storage = await getExternalStorageDirectory() ?? Directory('/');
+    logFile = await File('${storage!.path}/${fileName}');
+    await divider;
+    info("Starting Log Factory");
+  }
+
+  void divider() async {
+    await logFile!.writeAsString(
+        '======================================================= \n',
+        mode: FileMode.append);
+  }
+
+  void info(String message) async {
+    DateTime now = DateTime.now();
+    await logFile!.writeAsString(
+        '[ ${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}:${now.second}] INFO: ${message} \n',
+        mode: FileMode.append);
+  }
+
+  void warn(String message) async {
+    DateTime now = DateTime.now();
+    await logFile!.writeAsString(
+        '[ ${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}:${now.second}] WARN: ${message} \n',
+        mode: FileMode.append);
+  }
+
+  void error(String message) async {
+    DateTime now = DateTime.now();
+    await logFile!.writeAsString(
+        '[ ${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}:${now.second}] ERROR: ${message} \n',
+        mode: FileMode.append);
+  }
+}
 
 var box;
 
@@ -85,8 +129,12 @@ LinearGradient gar4 = LinearGradient(
   begin: Alignment.topRight,
   end: Alignment.bottomLeft,
 );
+fileLogger logger = fileLogger('last.txt');
+currentLang language = currentLang();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await logger.getStorage();
+  language.setEnglish();
   final appDocumentsDir = await getApplicationDocumentsDirectory();
   String path = appDocumentsDir.path;
 
@@ -95,12 +143,14 @@ void main() async {
     ..registerAdapter<WeatherData>(WeatherDataAdapter());
   //Hive.registerAdapter(WeatherDataAdapter());
   //Hive.init(path).registerAdapter(WeatherDataAdapter());
-
+  logger.info('Loading storage');
   await initStorage();
   loadStorage();
+  logger.info('Fetching data from api');
   await getData();
   await getCountrybyCity(settings[0]); // call to determine the geo location
   await getNext5Hours(settings[0]);
+  logger.info('Loading GUI');
   runApp(MainApp());
 }
 
@@ -151,7 +201,6 @@ class _HomeWidgetState extends State<HomeWidget> {
       ),
       extendBodyBehindAppBar: true,
       resizeToAvoidBottomInset: false,
-       
     );
   }
 }

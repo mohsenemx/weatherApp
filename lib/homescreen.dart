@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_new, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, prefer_const_constructors, avoid_print, unused_import, unnecessary_brace_in_string_interps, non_constant_identifier_names, unused_local_variable, unused_catch_clause, unnecessary_overrides
+// ignore_for_file: unnecessary_new, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, prefer_const_constructors, avoid_print, unused_import, unnecessary_brace_in_string_interps, non_constant_identifier_names, unused_local_variable, unused_catch_clause, unnecessary_overrides, unnecessary_string_interpolations
 
 import 'dart:convert';
 
@@ -39,6 +39,7 @@ WeatherData current_weather = new WeatherData();
 List<String> settings = ['No city set'];
 
 void setStorage() {
+  logger.info('Saving data to local storage');
   box.put('settings', settings);
   box.put('lastWeather', current_weather);
 }
@@ -62,8 +63,10 @@ Future<void> getWeatherData(String cityName) async {
   try {
     w = await wf.currentWeatherByCityName(cityName);
   } on OpenWeatherAPIException catch (e) {
+    logger.warn('City not found');
     wrongCity = true;
   } on ClientException catch (e) {
+    logger.warn('Failed to fetch weather data');
     print(e);
   }
 
@@ -115,10 +118,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               TextField(
                 controller: myController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'Set a city name',
-                  hintText: 'Set a city name',
+                  labelText: '${language.setCityName}',
+                  hintText: '${language.setCityName}',
                 ),
               ),
               SizedBox(
@@ -126,10 +129,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: TextButton(
                   child: const Text('OK'),
                   onPressed: () async {
+                    logger.info(
+                        'User searched for a city, name: ${myController.text}');
                     userData = myController.text;
 
                     setStorage();
                     setState(() {
+                      logger.info('Fetching new data from api');
                       getData();
                       getNext5Hours(userData);
                       settings[0] = (userData != '') ? userData : "No city set";
@@ -156,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     if (useNight) {
+      logger.info('Using night mode, setting colors');
       background = Gradient.lerp(gar3, gar4, 0.5);
       bigBold = TextStyle(
           fontFamily: 'sf',
@@ -191,9 +198,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
 
     cityName = new TextEditingController();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-     
+      logger.info('Loaded GUI');
     });
   }
 
@@ -240,6 +247,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: Stack(
                   children: [
                     Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            if (language.currentLanguage == "en") {
+                              setState(() {
+                                language.setPersian();
+                              });
+                            } else if (language.currentLanguage == "fa") {
+                              setState(() {
+                                language.setEnglish();
+                              });
+                            }
+                          },
+                          icon: Icon(Icons.translate_outlined),
+                        ),
+                      ],
+                    ),
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
@@ -260,7 +285,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               });
 
                               if (wrongCity) {
-                                showSnackBar('City not found', context);
+                                showSnackBar(
+                                    '${language.cityNotFound}', context);
                                 wrongCity = false;
                               }
                               setState(() {});
@@ -325,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                             Center(
                               child: Text(
-                                'Feels like ${current_weather.tempfeelslike} °C',
+                                '${language.feelsLike} ${current_weather.tempfeelslike} °C',
                                 style: mediumSSB,
                               ),
                             ),
@@ -341,12 +367,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Text('Sunrise: ${current_weather.sunrise}', style: smallSB),
-                  Text('Sunset: ${current_weather.sunset}', style: smallSB),
+                  Text('${language.sunrise}: ${current_weather.sunrise}',
+                      style: smallSB),
+                  Text('${language.sunset}: ${current_weather.sunset}',
+                      style: smallSB),
                 ],
               ),
               Center(
-                child: Text('Last Updated: ${current_weather.lastUpdatedFull}',
+                child: Text(
+                    '${language.lastUpdated}: ${current_weather.lastUpdatedFull}',
                     style: smallSB),
               ),
               SizedBox(
@@ -379,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       width: 15,
                     ),
                     Text(
-                      'Humidity:   ${current_weather.humidity}%',
+                      '${language.humidity}:   ${current_weather.humidity}%',
                       style: smallSB,
                     ),
                   ],
@@ -407,7 +436,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       width: 15,
                     ),
                     Text(
-                      'Wind Speed:   ${current_weather.windSpeed} km/h',
+                      '${language.windSpeed}:   ${current_weather.windSpeed} km/h',
                       style: smallSB,
                     ),
                   ],
@@ -435,16 +464,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       width: 15,
                     ),
                     Text(
-                      '${current_weather.pressure!} atm',
+                      '${language.pressure}: ${current_weather.pressure!} atm',
                       style: smallSB,
                     ),
                   ],
                 ),
               ),
               SizedBox(
-                height: 35,
+                height: 45,
               ),
-              Text('Made by MohsenEMX', style: smallSB)
+              Text('${language.madeBy}', style: smallSB)
             ],
           ),
         ),

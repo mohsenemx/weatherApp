@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:weather_icons/weather_icons.dart';
 import './secret.dart';
+import './main.dart';
 import './homescreen.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
@@ -16,28 +17,34 @@ Future<String> getCountrybyCity(String cityName) async {
   var a;
   var j;
   try {
+    logger.info('Trying to get country from city name');
     a = await http.get(Uri.parse(
         'http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${WeatherAPIKey}'));
     j = jsonDecode(a.body);
   } on http.ClientException catch (e) {
+    logger.warn('Failed to get city name, error: ${e.message}');
     print(e);
   }
 
   //print(j);
   try {
+    logger.info('Trying to parse location data');
     cLat = j[0]['lat'].toStringAsFixed(2) ?? 36.33;
     cLon = j[0]['lon'].toStringAsFixed(2) ?? 53.03;
     return j[0]['country'];
   } on RangeError catch (e) {
+    logger.warn('Failed to parse location data, error: ${e.message}');
     print(e);
     return "";
   } on NoSuchMethodError catch (e) {
+    logger.warn('Failed to parse location data, error: ${e}');
     print(e);
     return "";
   }
 }
 
 IconData chooseIcon(String name) {
+  logger.info('Choosing an icon');
   if (name == 'Thunderstorm') {
     return WeatherIcons.thunderstorm;
   } else if (name == 'Snow') {
@@ -66,6 +73,7 @@ IconData chooseIcon(String name) {
 }
 
 void showSnackBar(String message, context) {
+  logger.info('Displaying city not found snackbar');
   var snackBar = SnackBar(
     backgroundColor: Colors.red,
     content: Text(
@@ -103,6 +111,7 @@ class HourlyForecastClass {
 
 List<HourlyForecastClass> futureForeCast = [];
 Future<void> getNext5Hours(cityName) async {
+  logger.info('Fetching future forecast data');
   //print('$cLat $cLon');
   var a, j;
   if (cLat == "" || cLat == null) {
@@ -118,6 +127,7 @@ Future<void> getNext5Hours(cityName) async {
     j = jsonDecode(a.body);
     print(j);
   } on http.ClientException catch (e) {
+    logger.warn('Failed to fetch forecast data ${e.message}');
     print(e);
   }
 
@@ -268,7 +278,7 @@ Future<void> showTempDiag(
               ],
             ),
             Text(
-              'Feels like ${feelsLike} °C',
+              '${language.feelsLike} ${feelsLike} °C',
               style: smallSB,
             ),
             SizedBox(
