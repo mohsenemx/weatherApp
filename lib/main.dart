@@ -169,7 +169,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: [
+      /*localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -178,7 +178,7 @@ class MainApp extends StatelessWidget {
       supportedLocales: const [
         Locale('fa'),
         Locale('en'),
-      ],
+      ],*/
 
       title: "Weather App",
       home: HomeWidget(),
