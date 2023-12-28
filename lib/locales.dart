@@ -20,6 +20,9 @@ class currentLang {
   String madeBy = "Made by MohsenEMX";
   String kmh = "km/h";
   String atm = "atm";
+  String firstTime =
+      "Hi there, we noticed it's your first time using the app! \n Before we get started, you need to set a city to begin with.";
+  String go = "Go";
   void setEnglish() {
     englishLang f = englishLang();
     mainWeather = current_weather.mainWeather!;
@@ -38,6 +41,8 @@ class currentLang {
     madeBy = f.madeBy;
     kmh = f.kmh;
     atm = f.atm;
+    firstTime = f.firstTime;
+    go = f.go;
   }
 
   void setPersian() {
@@ -58,6 +63,8 @@ class currentLang {
     madeBy = f.madeBy;
     kmh = f.kmh;
     atm = f.atm;
+    firstTime = f.firstTime;
+    go = f.go;
   }
 
   // only for persian
@@ -151,6 +158,9 @@ class englishLang {
   String madeBy = "Made by MohsenEMX";
   String kmh = "km/h";
   String atm = "atm";
+  String firstTime =
+      "Hi there, we noticed it's your first time using the app! \n Before we get started, you need to set a city to begin with.";
+  String go = "Go";
 }
 
 class persianLang {
@@ -169,4 +179,7 @@ class persianLang {
   String madeBy = "ساخته شده توسط محسن";
   String kmh = "کیلومتر بر ساعت";
   String atm = "اتمسفر";
+  String firstTime =
+      "سلام! به نظر میرسه که اولین باره که این برنامه رو نصب کردی! \n قبل از اینکه شروع کنیم، باید یک شهر انتخاب کنی. اسم شهر باید اینگلیسی باشه.";
+  String go = "برو بریم";
 }

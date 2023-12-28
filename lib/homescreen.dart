@@ -66,6 +66,7 @@ void setStorage() {
   logger.info('Saving data to local storage');
   box.put('settings', settings);
   box.put('lastWeather', current_weather);
+  box.put('firstTime', isThisFirstTimeUsing); //
 }
 
 void loadStorage() {
@@ -78,6 +79,11 @@ void loadStorage() {
     // todo
   } else {
     current_weather = box.get('lastWeather');
+  }
+  if (box.get('firstTime') == null) {
+    // todo
+  } else {
+    isThisFirstTimeUsing = box.get('firstTime');
   }
 }
 
@@ -279,17 +285,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (language.currentLanguage == "en") {
                               setState(() {
                                 language.setPersian();
-                                language.translateWeathersLoop(futureForeCast);
+                                //getNext5Hours(settings[0]);
+                                frfKey.currentState!.updateTranslations();
                                 textdir = TextDirection.rtl;
                               });
                             } else if (language.currentLanguage == "fa") {
                               setState(() {
                                 language.setEnglish();
-                                language.translateWeathersLoop(futureForeCast);
+                                //getNext5Hours(settings[0]);
+                                frfKey.currentState!.updateTranslations();
+                                //language.translateWeathersLoop(futureForeCast);
                                 textdir = TextDirection.ltr;
                               });
                             }
@@ -302,10 +311,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          '${current_weather.countryname}, ',
-                          style: mediumSB,
-                        ),
                         Text(settings[0], style: mediumSB),
                       ],
                     ),
@@ -313,20 +318,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _showDialog(context);
-                                getData();
-                              });
+                          onPressed: () {
+                            setState(() {
+                              _showDialog(context);
+                              getData();
+                            });
 
-                              if (wrongCity) {
-                                showSnackBar(
-                                    '${language.cityNotFound}', context);
-                                wrongCity = false;
-                              }
-                              setState(() {});
-                            },
-                            icon: Icon(Icons.search, color: IconColor))
+                            if (wrongCity) {
+                              showSnackBar('${language.cityNotFound}', context);
+                              wrongCity = false;
+                            }
+                            setState(() {});
+                          },
+                          icon: Icon(Icons.settings_outlined, color: IconColor),
+                        ),
                       ],
                     ),
                   ],
@@ -434,7 +439,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               SizedBox(
                 height: 130,
                 width: MediaQuery.of(context).size.width - 20,
-                child: futureForecastWidget,
+                child: frf(
+                  key: frfKey,
+                ),
               ),
               SizedBox(
                 height: 20,

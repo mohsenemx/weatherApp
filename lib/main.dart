@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, prefer_const_literals_to_create_immutables, prefer_typing_uninitialized_variables, unnecessary_brace_in_string_interps, use_build_context_synchronously, await_only_futures, invalid_use_of_protected_member, camel_case_types
+// ignore_for_file: prefer_const_constructors, avoid_print, prefer_const_literals_to_create_immutables, prefer_typing_uninitialized_variables, unnecessary_brace_in_string_interps, use_build_context_synchronously, await_only_futures, invalid_use_of_protected_member, camel_case_types, unused_local_variable, curly_braces_in_flow_control_structures
 
 import 'package:flutter/material.dart';
 import 'package:weatherapp/homescreen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:weatherapp/locales.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import './utils.dart';
 import 'dart:io';
 part 'main.g.dart';
@@ -53,6 +52,7 @@ class fileLogger {
 }
 
 var box;
+bool isThisFirstTimeUsing = true;
 
 @HiveType(typeId: 0)
 class WeatherData {
@@ -136,8 +136,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await logger.getStorage();
 
-  final appDocumentsDir = await getApplicationDocumentsDirectory();
-  String path = appDocumentsDir.path;
+  final appDocumentsDir = await getExternalStorageDirectory();
+  final appDocs = await getApplicationDocumentsDirectory();
+  String path = appDocumentsDir?.path ?? appDocs.path;
 
   Hive
     ..init(path)
@@ -148,11 +149,16 @@ void main() async {
   await initStorage();
   loadStorage();
   logger.info('Fetching data from api');
-  await getData();
-  await getCountrybyCity(settings[0]); // call to determine the geo location
-  await getNext5Hours(settings[0]);
-  logger.info('Loading GUI');
+  var getDataD = getData();
+  var cbc = getCountrybyCity(settings[0]);
+  var next5 = getNext5Hours(settings[0]);
+  final value = await Future.wait([getDataD, cbc, next5]);
+  //print(value);
   language.setEnglish();
+  //await getCountrybyCity(settings[0]); // call to determine the geo location
+  //await getNext5Hours(settings[0]);
+  logger.info('Loading GUI');
+
   runApp(MainApp());
 }
 
@@ -186,6 +192,8 @@ class MainApp extends StatelessWidget {
   }
 }
 
+GlobalKey<FirstTimeState> hfs = GlobalKey();
+
 class HomeWidget extends StatefulWidget {
   const HomeWidget({super.key});
 
@@ -199,21 +207,151 @@ class _HomeWidgetState extends State<HomeWidget> {
     super.initState();
   }
 
+  void tests() {}
+  @override
+  Widget build(BuildContext context) {
+    return Builder(builder: (context) {
+      final List<Locale> systemLocales =
+          View.of(context).platformDispatcher.locales;
+      String devLang = systemLocales[0].toLanguageTag().substring(0, 2);
+      //print(systemLocales[2]);
+      if (devLang == "fa") {
+        language.setPersian();
+        textdir = TextDirection.rtl;
+      } else {
+        language.setEnglish();
+      }
+      if (isThisFirstTimeUsing) {
+        return FirstTime(
+          key: hfs,
+        );
+      } else
+        return Scaffold(
+          key: gKey,
+          body: HomeScreen(),
+          //backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0.0,
+            forceMaterialTransparency: true,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+          ),
+          extendBodyBehindAppBar: true,
+          resizeToAvoidBottomInset: false,
+        );
+    });
+  }
+}
+
+class FirstTime extends StatefulWidget {
+  const FirstTime({super.key});
+
+  @override
+  State<FirstTime> createState() => FirstTimeState();
+}
+
+class FirstTimeState extends State<FirstTime> {
+  TextEditingController cName = TextEditingController();
+  void isWrongCity() {
+    showSnackBar('City not found', context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: gKey,
-      body: HomeScreen(),
-      //backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
-        forceMaterialTransparency: true,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    if (language.currentLanguage == "en") {
+                      setState(() {
+                        language.setPersian();
+                        language.translateWeathersLoop(futureForeCast);
+                        textdir = TextDirection.rtl;
+                      });
+                    } else if (language.currentLanguage == "fa") {
+                      setState(() {
+                        language.setEnglish();
+                        language.translateWeathersLoop(futureForeCast);
+                        textdir = TextDirection.ltr;
+                      });
+                    }
+                  },
+                  icon: Icon(Icons.translate_outlined, color: IconColor),
+                ),
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Directionality(
+                    textDirection: textdir,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        language.firstTime,
+                        style: smallSB,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: cName,
+                    autofocus: true,
+                    style: mediumSSB,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      hintText: language.setCityName,
+                      labelText: language.setCityName,
+                      labelStyle: smallSB,
+                      alignLabelWithHint: true,
+                      //helperText: language.setCityName,
+
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5),
+                        gapPadding: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await getCountrybyCity(cName.text);
+                    if (wrongCity) {
+                      wrongCity = false;
+                      setState(() {
+                        isThisFirstTimeUsing = false;
+                        setStorage();
+                        Navigator.of(context).pop();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
+                      });
+                    } else {
+                      wrongCity = false;
+                    }
+                  },
+                  child: Text(language.go, style: mediumSSB),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      extendBodyBehindAppBar: true,
-      resizeToAvoidBottomInset: false,
     );
   }
 }

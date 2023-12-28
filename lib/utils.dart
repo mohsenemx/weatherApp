@@ -1,4 +1,4 @@
-// ignore_for_file: unused_element, unused_import, unnecessary_brace_in_string_interps, avoid_print, prefer_const_constructors, prefer_typing_uninitialized_variables, avoid_unnecessary_containers
+// ignore_for_file: unused_element, unused_import, unnecessary_brace_in_string_interps, avoid_print, prefer_const_constructors, prefer_typing_uninitialized_variables, avoid_unnecessary_containers, camel_case_types
 
 import 'package:flutter/material.dart';
 import 'package:weather_icons/weather_icons.dart';
@@ -33,8 +33,10 @@ Future<String> getCountrybyCity(String cityName) async {
     cLon = j[0]['lon'].toStringAsFixed(2) ?? 53.03;
     return j[0]['country'];
   } on RangeError catch (e) {
-    logger.warn('Failed to parse location data, error: ${e.message}');
+    logger.warn('Failed to parse location data, Error probably is caused because the api returned empty data, error: ${e.message}');
     print(e);
+    hfs.currentState?.isWrongCity();
+    wrongCity = true;
     return "";
   } on NoSuchMethodError catch (e) {
     logger.warn('Failed to parse location data, error: ${e}');
@@ -110,6 +112,7 @@ class HourlyForecastClass {
 }
 
 List<HourlyForecastClass> futureForeCast = [];
+
 Future<void> getNext5Hours(cityName) async {
   logger.info('Fetching future forecast data');
   //print('$cLat $cLon');
@@ -145,6 +148,7 @@ Future<void> getNext5Hours(cityName) async {
     futureForeCast.add(hfc);
   }
   language.translateWeathersLoop(futureForeCast);
+  //hfs.currentState!.setState(() {});
 }
 
 class HourlyForecast extends StatelessWidget {
@@ -155,6 +159,7 @@ class HourlyForecast extends StatelessWidget {
   final windSpeed;
   final windDeg;
   final feelsLike;
+  final weatherTranslation;
   final int index;
   const HourlyForecast({
     super.key,
@@ -165,6 +170,7 @@ class HourlyForecast extends StatelessWidget {
     required this.windSpeed,
     required this.windDeg,
     required this.feelsLike,
+    required this.weatherTranslation,
     required this.index,
   });
 
@@ -195,6 +201,7 @@ class HourlyForecast extends StatelessWidget {
                 time,
                 windSpeed,
                 windDeg,
+                weatherTranslation,
               );
             },
             child: Column(
@@ -208,7 +215,7 @@ class HourlyForecast extends StatelessWidget {
                 SizedBox(
                   height: 10,
                 ),
-                Text(language.futureMainWeathers[index], style: smallSB),
+                Text(weatherTranslation, style: smallSB),
                 SizedBox(
                   height: 5,
                 ),
@@ -223,25 +230,87 @@ class HourlyForecast extends StatelessWidget {
   }
 }
 
-Widget futureForecastWidget = SizedBox.expand(
-  child: ListView.separated(
-      scrollDirection: Axis.horizontal,
-      shrinkWrap: true,
-      itemCount: futureForeCast.length,
-      itemBuilder: (BuildContext context, int index) {
-        return HourlyForecast(
-          mainWeather: futureForeCast[index].mainWeather,
-          temp: futureForeCast[index].temp,
-          time: futureForeCast[index].time,
-          humidity: futureForeCast[index].humidity,
-          windSpeed: futureForeCast[index].windSpeed,
-          windDeg: futureForeCast[index].windDeg,
-          feelsLike: futureForeCast[index].feelsLike,
-          index: index,
-        );
-      },
-      separatorBuilder: (context, index) => SizedBox()),
-);
+GlobalKey<frfState> frfKey = GlobalKey();
+
+class frf extends StatefulWidget {
+  const frf({super.key});
+
+  @override
+  State<frf> createState() => frfState();
+}
+
+class frfState extends State<frf> {
+  List<String> futureMainWeathers = [];
+  Future<void> translateWeathersLoop(
+      List<HourlyForecastClass> f, bool reset) async {
+    if (reset) {
+      //futureMainWeathers.removeRange(0, futureMainWeathers.length - 1);
+      for (int i = 0; i < futureMainWeathers.length - 1; i++) {
+        futureMainWeathers.removeAt(i);
+      }
+    }
+
+    for (int i = 0; i < 10; i++) {
+      String a = "";
+      String weather = f[i].mainWeather!;
+      if (language.currentLanguage == "fa") {
+        if (weather == "Clear") {
+          a = "صاف";
+        } else if (weather == "Rain") {
+          a = "بارانی";
+        } else if (weather == "Clouds") {
+          a = "ابری";
+        } else if (weather == "Thunderstorm") {
+          a = "طوفانی";
+        } else if (weather == "Snow") {
+          a = "برفی";
+        } else if (weather == "Drizzle") {
+          a = "باران سبک";
+        } else if (weather == "Mist" || weather == "Fog") {
+          a = "مه";
+        } else {
+          a = "صاف";
+        }
+      } else {
+        a = weather;
+      }
+      futureMainWeathers.add(a);
+    }
+  }
+
+  void updateTranslations() {
+    setState(() {
+      translateWeathersLoop(futureForeCast, true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    translateWeathersLoop(futureForeCast, false);
+    return SizedBox.expand(
+      child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          shrinkWrap: true,
+          itemCount: futureForeCast.length,
+          itemBuilder: (BuildContext context, int index) {
+            return HourlyForecast(
+              mainWeather: futureForeCast[index].mainWeather,
+              temp: futureForeCast[index].temp,
+              time: futureForeCast[index].time,
+              humidity: futureForeCast[index].humidity,
+              windSpeed: futureForeCast[index].windSpeed,
+              windDeg: futureForeCast[index].windDeg,
+              feelsLike: futureForeCast[index].feelsLike,
+              weatherTranslation: futureMainWeathers[index],
+              index: index,
+            );
+          },
+          separatorBuilder: (context, index) => SizedBox()),
+    );
+  }
+}
+
+Widget? futureForecastWidget;
 Future<void> showTempDiag(
   context,
   int index,
@@ -252,6 +321,7 @@ Future<void> showTempDiag(
   String time,
   String windSpeed,
   String windDeg,
+  String weatherTranslation,
 ) async {
   IconData weatherIcon = chooseIcon(weather);
   int windDegInt = int.parse(windDeg);
@@ -284,7 +354,7 @@ Future<void> showTempDiag(
                 SizedBox(
                   width: 5,
                 ),
-                Text(language.futureMainWeathers[index], style: mediumSB),
+                Text(weatherTranslation, style: mediumSB),
               ],
             ),
             Builder(builder: (context) {
