@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:weather/weather.dart';
 import 'package:weather_icons/weather_icons.dart';
 //import 'package:flutter_localization/flutter_localization.dart' as loc;
+import 'package:weather_animation/weather_animation.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart' as intl;
 import 'dart:async';
@@ -282,11 +283,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 child: Stack(
                   children: [
+                    Builder(builder: (context) {
+                      if (current_weather.mainWeather == "Drizzle") {
+                        return RainVeryLight();
+                      } else if (current_weather.mainWeather == "Rain") {
+                        return RainLight();
+                      } else if (current_weather.mainWeather ==
+                          "Thunderstorm") {
+                        return ThunderStorm();
+                      } else if (current_weather.mainWeather == "Snow") {
+                        return Snowing();
+                      } else {
+                        return Text('');
+                      }
+                    }),
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () async {
-                            if (language.currentLanguage == "en") {
+                          onPressed: () {
+                            /*if (language.currentLanguage == "en") {
                               setState(() {
                                 language.setPersian();
                                 //getNext5Hours(settings[0]);
@@ -301,7 +316,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 //language.translateWeathersLoop(futureForeCast);
                                 textdir = TextDirection.ltr;
                               });
-                            }
+                            }*/
+                            Widget h = Column(
+                              children: [
+                                Container(
+                                  constraints: BoxConstraints(
+                                    minWidth:
+                                        MediaQuery.of(context).size.width - 20,
+                                  ),
+                                  child: ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          language.setEnglish();
+                                        });
+                                        logger.info(
+                                            "Chnaging language to English");
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('EN - English',
+                                          style: mediumSSB)),
+                                ),
+                                Container(
+                                  constraints: BoxConstraints(
+                                    minWidth:
+                                        MediaQuery.of(context).size.width - 20,
+                                  ),
+                                  child: ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          language.setPersian();
+                                        });
+                                        Navigator.of(context).pop();
+                                        logger.info(
+                                            "Chnaging language to Persian");
+                                      },
+                                      child:
+                                          Text('FA - فارسی', style: mediumSSB)),
+                                ),
+                              ],
+                            );
+                            universalPopUp(context, h);
                           },
                           icon:
                               Icon(Icons.translate_outlined, color: IconColor),
@@ -437,11 +491,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 height: 15,
               ),
               SizedBox(
-                height: 130,
+                height: 115,
                 width: MediaQuery.of(context).size.width - 20,
                 child: frf(
-                  key: frfKey,
-                ),
+                    //key: frfKey,
+                    ),
               ),
               SizedBox(
                 height: 20,
@@ -542,6 +596,116 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Text('${language.madeBy}', style: smallSB)
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class RainLight extends StatelessWidget {
+  const RainLight({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 5,
+      width: MediaQuery.of(context).size.width - 5,
+      child: RainWidget(
+        rainConfig: RainConfig(
+          widthDrop: 4,
+          areaYStart: 0,
+          areaXStart: 0,
+          areaXEnd: MediaQuery.of(context).size.width,
+          areaYEnd: MediaQuery.of(context).size.height,
+          lengthDrop: 10,
+          count: 6,
+          isRoundedEndsDrop: true,
+        ),
+      ),
+    );
+  }
+}
+
+class RainVeryLight extends StatelessWidget {
+  const RainVeryLight({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 5,
+      width: MediaQuery.of(context).size.width - 5,
+      child: RainWidget(
+        rainConfig: RainConfig(
+          widthDrop: 4,
+          areaYStart: 0,
+          areaXStart: 0,
+          areaXEnd: MediaQuery.of(context).size.width,
+          areaYEnd: MediaQuery.of(context).size.height,
+          lengthDrop: 10,
+          count: 20,
+          isRoundedEndsDrop: true,
+        ),
+      ),
+    );
+  }
+}
+
+class ThunderStorm extends StatelessWidget {
+  const ThunderStorm({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 5,
+      width: MediaQuery.of(context).size.width - 5,
+      child: Stack(
+        children: [
+          ThunderWidget(
+            thunderConfig: ThunderConfig(
+              flashStartMill: 5,
+              flashEndMill: 1000,
+              pauseStartMill: 0,
+              pauseEndMill: 60,
+            ),
+          ),
+          RainWidget(
+            rainConfig: RainConfig(
+              widthDrop: 2,
+              areaYStart: 0,
+              areaXStart: 0,
+              areaXEnd: MediaQuery.of(context).size.width,
+              areaYEnd: MediaQuery.of(context).size.height,
+              lengthDrop: 5,
+              count: 45,
+              isRoundedEndsDrop: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class Snowing extends StatelessWidget {
+  const Snowing({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 5,
+      width: MediaQuery.of(context).size.width - 5,
+      child: SnowWidget(
+        snowConfig: SnowConfig(
+          areaYStart: 0,
+          areaXStart: 0,
+          areaXEnd: MediaQuery.of(context).size.width,
+          areaYEnd: MediaQuery.of(context).size.height,
+          size: 20,
+          count: 25,
+          fallMinSec: 1,
+          fallMaxSec: 15,
+          waveMinSec: 1,
+          waveMaxSec: 2,
         ),
       ),
     );

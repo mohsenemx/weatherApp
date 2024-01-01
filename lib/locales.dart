@@ -1,6 +1,7 @@
 // ignore_for_file: camel_case_types
 import 'homescreen.dart';
 import 'utils.dart';
+import 'package:flutter/material.dart';
 
 class currentLang {
   String helloText = "";
@@ -25,6 +26,7 @@ class currentLang {
   String go = "Go";
   void setEnglish() {
     englishLang f = englishLang();
+    textdir = TextDirection.ltr;
     mainWeather = current_weather.mainWeather!;
     currentLanguage = "en";
     helloText = f.helloText;
@@ -47,6 +49,7 @@ class currentLang {
 
   void setPersian() {
     persianLang f = persianLang();
+    textdir = TextDirection.rtl;
     translateWeather(current_weather.mainWeather);
     currentLanguage = "fa";
     helloText = f.helloText;

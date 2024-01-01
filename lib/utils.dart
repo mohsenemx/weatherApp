@@ -33,7 +33,8 @@ Future<String> getCountrybyCity(String cityName) async {
     cLon = j[0]['lon'].toStringAsFixed(2) ?? 53.03;
     return j[0]['country'];
   } on RangeError catch (e) {
-    logger.warn('Failed to parse location data, Error probably is caused because the api returned empty data, error: ${e.message}');
+    logger.warn(
+        'Failed to parse location data, Error probably is caused because the api returned empty data, error: ${e.message}');
     print(e);
     hfs.currentState?.isWrongCity();
     wrongCity = true;
@@ -177,7 +178,7 @@ class HourlyForecast extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(5.0),
       child: AnimatedContainer(
         duration: Duration(milliseconds: 300 + (index * 100)),
         curve: Curves.fastOutSlowIn,
@@ -215,10 +216,6 @@ class HourlyForecast extends StatelessWidget {
                 SizedBox(
                   height: 10,
                 ),
-                Text(weatherTranslation, style: smallSB),
-                SizedBox(
-                  height: 5,
-                ),
                 Text('$temp °C', style: smallSB),
                 Text(time, style: smallSB),
               ],
@@ -230,7 +227,7 @@ class HourlyForecast extends StatelessWidget {
   }
 }
 
-GlobalKey<frfState> frfKey = GlobalKey();
+//GlobalKey<frfState> frfKey = GlobalKey();
 
 class frf extends StatefulWidget {
   const frf({super.key});
@@ -389,6 +386,18 @@ Future<void> showTempDiag(
             ),
           ],
         ),
+      );
+    },
+  );
+}
+
+Future<void> universalPopUp(context, Widget twidget) async {
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: DivColor,
+        title: twidget,
       );
     },
   );
