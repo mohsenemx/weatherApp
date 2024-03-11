@@ -27,7 +27,7 @@ class currentLang {
   void setEnglish() {
     englishLang f = englishLang();
     textdir = TextDirection.ltr;
-    mainWeather = current_weather.mainWeather!;
+    mainWeather = current_weather.mainWeather ?? 'No data';
     currentLanguage = "en";
     helloText = f.helloText;
     byeText = f.byeText;

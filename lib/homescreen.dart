@@ -8,6 +8,7 @@ import 'package:weather/weather.dart';
 import 'package:weather_icons/weather_icons.dart';
 //import 'package:flutter_localization/flutter_localization.dart' as loc;
 import 'package:weather_animation/weather_animation.dart';
+import 'package:home_widget/home_widget.dart' as home_widget;
 import 'package:http/http.dart';
 import 'package:intl/intl.dart' as intl;
 import 'dart:async';
@@ -15,7 +16,7 @@ import './main.dart';
 import './utils.dart';
 import './secret.dart';
 
-final gKey = GlobalKey<ScaffoldState>();
+final gKey = GlobalKey<_HomeScreenState>();
 
 TextStyle bigBold = TextStyle(
   fontFamily: 'sf',
@@ -76,15 +77,17 @@ void loadStorage() {
   } else {
     settings = box.get('settings');
   }
-  if (box.get('lastWeather') == null) {
-    // todo
-  } else {
-    current_weather = box.get('lastWeather');
-  }
   if (box.get('firstTime') == null) {
     // todo
   } else {
     isThisFirstTimeUsing = box.get('firstTime');
+  }
+}
+void loadStorageWeatherData() {
+  if (box.get('lastWeather') == null) {
+    // todo
+  } else {
+    current_weather = box.get('lastWeather');
   }
 }
 
@@ -95,24 +98,23 @@ Future<void> getWeatherData(String cityName) async {
     w = await wf.currentWeatherByCityName(cityName);
   } on OpenWeatherAPIException catch (e) {
     logger.warn('City not found');
-    wrongCity = true;
   } on ClientException catch (e) {
     logger.warn('Failed to fetch weather data');
     print(e);
   }
 
   current_weather.temperature =
-      w?.temperature?.celsius?.round().toString() ?? 'Error';
+      w?.temperature?.celsius?.round().toString() ?? 'No data';
   current_weather.tempfeelslike =
-      w?.tempFeelsLike?.celsius?.round().toString() ?? 'Error';
-  current_weather.humidity = w?.humidity?.round().toString() ?? 'Error';
+      w?.tempFeelsLike?.celsius?.round().toString() ?? 'No data';
+  current_weather.humidity = w?.humidity?.round().toString() ?? 'No data';
   current_weather.windSpeed = ((w?.windSpeed ?? 1) * 3.6).round().toString();
   current_weather.windDeg = w?.windDegree?.round() ?? 1;
-  current_weather.countryname = w?.country ?? 'Error';
-  current_weather.mainWeather = w?.weatherMain ?? 'Error';
+  current_weather.countryname = w?.country ?? 'No data';
+  current_weather.mainWeather = w?.weatherMain ?? 'No data';
   current_weather.weatherDescription =
       w?.weatherDescription?.toString() ?? 'Error';
-  current_weather.pressure = ((w?.pressure ?? 1000) / 1000).toString();
+  current_weather.pressure = ((w?.pressure ?? 10000000) / 1000).toString();
   current_weather.sunrise =
       '${w?.sunrise?.hour.toString()}:${w?.sunrise?.minute.toString().padLeft(2, '0')}';
   current_weather.sunset =
@@ -132,10 +134,16 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-  void f() {}
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  void disconnected() {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Scaffold(body: DisconnectedScreen())),
+        );
+      }
+
   final myController = TextEditingController();
   late String userData;
   Future<void> _showDialog(context) async {
@@ -172,7 +180,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       settings[0] = (userData != '') ? userData : "No city set";
                     });
 
-                    print(settings[0]);
                     myController.text = '';
 
                     FocusManager.instance.primaryFocus?.unfocus();
@@ -192,6 +199,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    getWeatherData(settings[0]);
     if (useNight) {
       logger.info('Using night mode, setting colors');
       background = Gradient.lerp(gar3, gar4, 0.5);
@@ -250,15 +258,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      displacement: 10,
+      displacement: 15,
       backgroundColor: Colors.white,
       onRefresh: () async {
         setState(() {
           getWeatherData(settings[0]);
           getCountrybyCity(settings[0]);
+          setStorage();
+          Future.delayed(Duration(seconds: 2));
         });
-        setStorage();
-        Future.delayed(Duration(seconds: 3));
       },
       child: Container(
         constraints: BoxConstraints(
@@ -372,15 +380,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         IconButton(
-                          onPressed: () {
+                          onPressed: () async {
                             setState(() {
                               _showDialog(context);
                               getData();
                             });
 
-                            if (wrongCity) {
+                            if (await getCountrybyCity(settings[0])) {
                               showSnackBar('${language.cityNotFound}', context);
-                              wrongCity = false;
                             }
                             setState(() {});
                           },
@@ -492,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               SizedBox(
                 height: 115,
-                width: MediaQuery.of(context).size.width - 20,
+                width: MediaQuery.of(context).size.width - 5,
                 child: frf(
                     //key: frfKey,
                     ),
@@ -582,18 +589,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       SizedBox(
                         width: 15,
                       ),
-                      Text(
-                        '${language.pressure}: ${current_weather.pressure!} ${language.atm}',
-                        style: smallSB,
-                      ),
+                      Builder(builder: (context) {
+                        if (current_weather.pressure!.length <= 6) {
+                          return Text(
+                            '${language.pressure}: ${current_weather.pressure!} ${language.atm}',
+                            style: smallSB,
+                          );
+                        } else {
+                          return Text('No data', style: smallSB);
+                        }
+                      }),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: 55,
-              ),
-              Text('${language.madeBy}', style: smallSB)
             ],
           ),
         ),
@@ -618,7 +627,7 @@ class RainLight extends StatelessWidget {
           areaXEnd: MediaQuery.of(context).size.width,
           areaYEnd: MediaQuery.of(context).size.height,
           lengthDrop: 10,
-          count: 6,
+          count: 10,
           isRoundedEndsDrop: true,
         ),
       ),
@@ -708,6 +717,22 @@ class Snowing extends StatelessWidget {
           waveMaxSec: 2,
         ),
       ),
+    );
+  }
+}
+class DisconnectedScreen extends StatelessWidget {
+  const DisconnectedScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+          child: Column(
+        children: [
+          Text('d'),
+          
+        ],
+      )),
     );
   }
 }

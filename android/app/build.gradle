@@ -27,6 +27,7 @@ def keystoreProperties = new Properties()
        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
    }
 android {
+    
     namespace "com.mohsen.weatherapp"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
