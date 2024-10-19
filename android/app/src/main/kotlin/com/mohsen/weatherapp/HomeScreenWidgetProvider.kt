@@ -9,7 +9,7 @@ import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 class HomeScreenWidgetProvider: HomeWidgetProvider() {
-        override val paint: Any
+        val paint: Any
         get() {
             // Implement the property as needed
             // You can return an instance of a class or any other value

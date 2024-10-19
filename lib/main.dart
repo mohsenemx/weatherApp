@@ -106,7 +106,7 @@ Future<void> getData() async {
 }
 
 Color nWhite = Color.fromRGBO(250, 236, 236, 0.898);
-Color nDark = Color.fromRGBO(35, 35, 83, 0.9);
+Color nDark = Color.fromRGBO(35, 35, 83, 0.9); 
 LinearGradient gar1 = LinearGradient(
     colors: [nWhite, Colors.red.withOpacity(0.7)],
     begin: Alignment.topLeft,
@@ -190,7 +190,7 @@ void main() async {
   logger.info('Loading storage');
   // load the data from local storage
   await initStorage();
-  
+
   loadStorage();
   logger.info('Fetching data from api');
   // define 3 required functions as variables
@@ -215,7 +215,6 @@ void main() async {
     gKey.currentState?.disconnected();
   }
   runApp(MainApp());
-  
 }
 
 class MainApp extends StatelessWidget {
@@ -273,6 +272,11 @@ class _HomeWidgetState extends State<HomeWidget> {
       } else {
         language.setEnglish();
       }
+      if (settings[0] != "No city set") {
+        isThisFirstTimeUsing = false;
+      } else {
+        isThisFirstTimeUsing = true;
+      }
       if (isThisFirstTimeUsing) {
         return FirstTime(
           key: hfs,
@@ -292,9 +296,6 @@ class _HomeWidgetState extends State<HomeWidget> {
           ),
           extendBodyBehindAppBar: true,
           resizeToAvoidBottomInset: false,
-          drawer: Drawer(
-            child: DrawerButton(onPressed: () {}),
-          ),
         );
     });
   }
@@ -315,6 +316,8 @@ class FirstTimeState extends State<FirstTime> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.sizeOf(context).width;
+    double height = MediaQuery.sizeOf(context).height;
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -393,12 +396,23 @@ class FirstTimeState extends State<FirstTime> {
                         barrierDismissible: false,
                         builder: (BuildContext context) {
                           return Dialog(
-                            child: new Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                new CircularProgressIndicator(),
-                                new Text("Loading"),
-                              ],
+                            backgroundColor: Colors.black.withOpacity(0.6),
+                            child: Container(
+                              constraints: BoxConstraints(
+                                  maxHeight: height, maxWidth: width),
+                              child: Expanded(
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: new Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      new CircularProgressIndicator(),
+                                      new Text("Loading"),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           );
                         },
@@ -407,16 +421,16 @@ class FirstTimeState extends State<FirstTime> {
                         Navigator.pop(context); //pop dialog
                       });
                       setState(() {
-                        sleep(Duration(seconds: 2));
+                        //sleep(Duration(seconds: 2));
                         logger.info('Fetching new data from api');
                         isThisFirstTimeUsing = false;
-                        getData();
-                        getNext5Hours(cName.text);
                         settings[0] =
                             (cName.text != '') ? cName.text : "No city set";
                         setStorage();
+                        getData();
+                        getNext5Hours(settings[0]);
                         Navigator.of(context).pop();
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>

@@ -80,9 +80,10 @@ void loadStorage() {
   if (box.get('firstTime') == null) {
     // todo
   } else {
-    isThisFirstTimeUsing = box.get('firstTime');
+    isThisFirstTimeUsing = box.get('firstTime') ;
   }
 }
+
 void loadStorageWeatherData() {
   if (box.get('lastWeather') == null) {
     // todo
@@ -138,11 +139,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void disconnected() {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => Scaffold(body: DisconnectedScreen())),
-        );
-      }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => Scaffold(body: DisconnectedScreen())),
+    );
+  }
 
   final myController = TextEditingController();
   late String userData;
@@ -276,334 +278,344 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           //color: Colors.transparent,
           gradient: background,
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width + 10,
-                  maxHeight: 55,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 20,
                 ),
-                child: Stack(
-                  children: [
-                    Builder(builder: (context) {
-                      if (current_weather.mainWeather == "Drizzle") {
-                        return RainVeryLight();
-                      } else if (current_weather.mainWeather == "Rain") {
-                        return RainLight();
-                      } else if (current_weather.mainWeather ==
-                          "Thunderstorm") {
-                        return ThunderStorm();
-                      } else if (current_weather.mainWeather == "Snow") {
-                        return Snowing();
-                      } else {
-                        return Text('');
-                      }
-                    }),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            /*if (language.currentLanguage == "en") {
-                              setState(() {
-                                language.setPersian();
-                                //getNext5Hours(settings[0]);
-                                frfKey.currentState!.updateTranslations();
-                                textdir = TextDirection.rtl;
-                              });
-                            } else if (language.currentLanguage == "fa") {
-                              setState(() {
-                                language.setEnglish();
-                                //getNext5Hours(settings[0]);
-                                frfKey.currentState!.updateTranslations();
-                                //language.translateWeathersLoop(futureForeCast);
-                                textdir = TextDirection.ltr;
-                              });
-                            }*/
-                            Widget h = Column(
-                              children: [
-                                Container(
-                                  constraints: BoxConstraints(
-                                    minWidth:
-                                        MediaQuery.of(context).size.width - 20,
-                                  ),
-                                  child: ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          language.setEnglish();
-                                        });
-                                        logger.info(
-                                            "Chnaging language to English");
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text('EN - English',
-                                          style: mediumSSB)),
-                                ),
-                                Container(
-                                  constraints: BoxConstraints(
-                                    minWidth:
-                                        MediaQuery.of(context).size.width - 20,
-                                  ),
-                                  child: ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          language.setPersian();
-                                        });
-                                        Navigator.of(context).pop();
-                                        logger.info(
-                                            "Chnaging language to Persian");
-                                      },
-                                      child:
-                                          Text('FA - فارسی', style: mediumSSB)),
-                                ),
-                              ],
-                            );
-                            universalPopUp(context, h);
-                          },
-                          icon:
-                              Icon(Icons.translate_outlined, color: IconColor),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(settings[0], style: mediumSB),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          onPressed: () async {
-                            setState(() {
-                              _showDialog(context);
-                              getData();
-                            });
-
-                            if (await getCountrybyCity(settings[0])) {
-                              showSnackBar('${language.cityNotFound}', context);
-                            }
-                            setState(() {});
-                          },
-                          icon: Icon(Icons.settings_outlined, color: IconColor),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 200,
+                Container(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width + 10,
+                    maxHeight: 55,
                   ),
-                  SizedBox(
-                    height: 160,
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              localIcon,
-                              color: IconColor,
-                              size: IconSize,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              current_weather.temperature ?? "Error",
-                              style: bigBold,
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  height: 15,
-                                ),
-                                Text(
-                                  ' °C',
-                                  style: mediumBold,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Center(
-                              child: Text(
-                                '${language.mainWeather}',
-                                style: mediumSB,
-                              ),
-                            ),
-                            Center(
-                              child: Builder(builder: (context) {
-                                if (language.currentLanguage == "fa") {
-                                  return Text(
-                                    ' ${current_weather.tempfeelslike}°C  ${language.feelsLike} ',
-                                    style: mediumSSB,
-                                  );
-                                } else {
-                                  return Text(
-                                    '${language.feelsLike} ${current_weather.tempfeelslike} °C',
-                                    style: mediumSSB,
-                                  );
-                                }
-                              }),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Directionality(
-                textDirection: textdir,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Text('${language.sunrise}: ${current_weather.sunrise}',
-                        style: smallSB),
-                    Text('${language.sunset}: ${current_weather.sunset}',
-                        style: smallSB),
-                  ],
-                ),
-              ),
-              Center(
-                child: Directionality(
-                  textDirection: textdir,
-                  child: Text(
-                      '${language.lastUpdated}: ${current_weather.lastUpdatedFull}',
-                      style: smallSB),
-                ),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              SizedBox(
-                height: 115,
-                width: MediaQuery.of(context).size.width - 5,
-                child: frf(
-                    //key: frfKey,
-                    ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: 55,
-                  maxWidth: 350,
-                ),
-                decoration: divDecoration,
-                child: Directionality(
-                  textDirection: textdir,
-                  child: Row(
-                    // Show humidty
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Stack(
                     children: [
-                      Icon(
-                        Icons.water_drop_outlined,
-                        color: IconColor,
-                      ),
-                      SizedBox(
-                        width: 15,
-                      ),
-                      Text(
-                        '${language.humidity}:   ${current_weather.humidity}%',
-                        style: smallSB,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: 55,
-                  maxWidth: 350,
-                ),
-                decoration: divDecoration,
-                child: Directionality(
-                  textDirection: textdir,
-                  child: Row(
-                    // Show wind speed
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      WindIcon(
-                        degree: current_weather.windDeg ?? 1,
-                        color: IconColor,
-                      ),
-                      SizedBox(
-                        width: 15,
-                      ),
-                      Text(
-                        '${language.windSpeed}:   ${current_weather.windSpeed} ${language.kmh}',
-                        style: smallSB,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: 55,
-                  maxWidth: 350,
-                ),
-                decoration: divDecoration,
-                child: Directionality(
-                  textDirection: textdir,
-                  child: Row(
-                    // Show air pressure
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        WeatherIcons.windy,
-                        color: IconColor,
-                      ),
-                      SizedBox(
-                        width: 15,
-                      ),
                       Builder(builder: (context) {
-                        if (current_weather.pressure!.length <= 6) {
-                          return Text(
-                            '${language.pressure}: ${current_weather.pressure!} ${language.atm}',
-                            style: smallSB,
-                          );
+                        if (current_weather.mainWeather == "Drizzle") {
+                          return RainVeryLight();
+                        } else if (current_weather.mainWeather == "Rain") {
+                          return RainLight();
+                        } else if (current_weather.mainWeather ==
+                            "Thunderstorm") {
+                          return ThunderStorm();
+                        } else if (current_weather.mainWeather == "Snow") {
+                          return Snowing();
                         } else {
-                          return Text('No data', style: smallSB);
+                          return Text('');
                         }
                       }),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              /*if (language.currentLanguage == "en") {
+                                setState(() {
+                                  language.setPersian();
+                                  //getNext5Hours(settings[0]);
+                                  frfKey.currentState!.updateTranslations();
+                                  textdir = TextDirection.rtl;
+                                });
+                              } else if (language.currentLanguage == "fa") {
+                                setState(() {
+                                  language.setEnglish();
+                                  //getNext5Hours(settings[0]);
+                                  frfKey.currentState!.updateTranslations();
+                                  //language.translateWeathersLoop(futureForeCast);
+                                  textdir = TextDirection.ltr;
+                                });
+                              }*/
+                              Widget h = Column(
+                                children: [
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      minWidth:
+                                          MediaQuery.of(context).size.width -
+                                              20,
+                                    ),
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            language.setEnglish();
+                                          });
+                                          logger.info(
+                                              "Chnaging language to English");
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('EN - English',
+                                            style: mediumSSB)),
+                                  ),
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      minWidth:
+                                          MediaQuery.of(context).size.width -
+                                              20,
+                                    ),
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            language.setPersian();
+                                          });
+                                          Navigator.of(context).pop();
+                                          logger.info(
+                                              "Chnaging language to Persian");
+                                        },
+                                        child: Text('FA - فارسی',
+                                            style: mediumSSB)),
+                                  ),
+                                ],
+                              );
+                              universalPopUp(context, h);
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return SettingsPage();
+                              }));
+                            },
+                            icon: Icon(Icons.translate_outlined,
+                                color: IconColor),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(settings[0], style: mediumSB),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: () async {
+                              /*setState(() {
+                                _showDialog(context);
+                                getData();
+                              });
+          
+                              if (await getCountrybyCity(settings[0])) {
+                                showSnackBar('${language.cityNotFound}', context);
+                              }
+          
+                              setState(() {});*/
+                            },
+                            icon:
+                                Icon(Icons.settings_outlined, color: IconColor),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 200,
+                    ),
+                    SizedBox(
+                      height: 160,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                localIcon,
+                                color: IconColor,
+                                size: IconSize,
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                current_weather.temperature ?? "Error",
+                                style: bigBold,
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    height: 15,
+                                  ),
+                                  Text(
+                                    ' °C',
+                                    style: mediumBold,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Center(
+                                child: Text(
+                                  '${language.mainWeather}',
+                                  style: mediumSB,
+                                ),
+                              ),
+                              Center(
+                                child: Builder(builder: (context) {
+                                  if (language.currentLanguage == "fa") {
+                                    return Text(
+                                      ' ${current_weather.tempfeelslike}°C  ${language.feelsLike} ',
+                                      style: mediumSSB,
+                                    );
+                                  } else {
+                                    return Text(
+                                      '${language.feelsLike} ${current_weather.tempfeelslike} °C',
+                                      style: mediumSSB,
+                                    );
+                                  }
+                                }),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Directionality(
+                  textDirection: textdir,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Text('${language.sunrise}: ${current_weather.sunrise}',
+                          style: smallSB),
+                      Text('${language.sunset}: ${current_weather.sunset}',
+                          style: smallSB),
+                    ],
+                  ),
+                ),
+                Center(
+                  child: Directionality(
+                    textDirection: textdir,
+                    child: Text(
+                        '${language.lastUpdated}: ${current_weather.lastUpdatedFull}',
+                        style: smallSB),
+                  ),
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                SizedBox(
+                  height: 115,
+                  width: MediaQuery.of(context).size.width - 5,
+                  child: frf(
+                      //key: frfKey,
+                      ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: 55,
+                    maxWidth: 350,
+                  ),
+                  decoration: divDecoration,
+                  child: Directionality(
+                    textDirection: textdir,
+                    child: Row(
+                      // Show humidty
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.water_drop_outlined,
+                          color: IconColor,
+                        ),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Text(
+                          '${language.humidity}:   ${current_weather.humidity}%',
+                          style: smallSB,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: 55,
+                    maxWidth: 350,
+                  ),
+                  decoration: divDecoration,
+                  child: Directionality(
+                    textDirection: textdir,
+                    child: Row(
+                      // Show wind speed
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        WindIcon(
+                          degree: current_weather.windDeg ?? 1,
+                          color: IconColor,
+                        ),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Text(
+                          '${language.windSpeed}:   ${current_weather.windSpeed} ${language.kmh}',
+                          style: smallSB,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: 55,
+                    maxWidth: 350,
+                  ),
+                  decoration: divDecoration,
+                  child: Directionality(
+                    textDirection: textdir,
+                    child: Row(
+                      // Show air pressure
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          WeatherIcons.windy,
+                          color: IconColor,
+                        ),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Builder(builder: (context) {
+                          if (current_weather.pressure!.length <= 6) {
+                            return Text(
+                              '${language.pressure}: ${current_weather.pressure!} ${language.atm}',
+                              style: smallSB,
+                            );
+                          } else {
+                            return Text('No data', style: smallSB);
+                          }
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -697,7 +709,6 @@ class ThunderStorm extends StatelessWidget {
 
 class Snowing extends StatelessWidget {
   const Snowing({super.key});
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -720,6 +731,7 @@ class Snowing extends StatelessWidget {
     );
   }
 }
+
 class DisconnectedScreen extends StatelessWidget {
   const DisconnectedScreen({super.key});
 
@@ -730,9 +742,33 @@ class DisconnectedScreen extends StatelessWidget {
           child: Column(
         children: [
           Text('d'),
-          
         ],
       )),
+    );
+  }
+}
+
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        child: Align(
+          alignment: Alignment.center,
+          child: Column(
+            children: [
+              Text('Test text'),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

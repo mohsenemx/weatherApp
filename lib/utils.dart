@@ -12,12 +12,12 @@ import 'package:http/http.dart' as http;
 String? cLat;
 String? cLon;
 Future<bool> getCountrybyCity(String cityName) async {
-  var a;
+  http.Response a;
   var j;
   try {
     logger.info('Trying to get country from city name');
     a = await http.get(Uri.parse(
-        'http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${WeatherAPIKey}'));
+        'http://api.openweathermap.org/geo/1.0/direct?q=$cityName&limit=1&appid=$WeatherAPIKey'));
     j = jsonDecode(a.body);
   } on http.ClientException catch (e) {
     logger.warn('Failed to get city name, error: ${e.message}');
@@ -36,7 +36,7 @@ Future<bool> getCountrybyCity(String cityName) async {
     hfs.currentState?.isWrongCity();
     return true;
   } on NoSuchMethodError catch (e) {
-    logger.warn('Failed to parse location data, error: ${e}');
+    logger.warn('Failed to parse location data, error: $e');
     print(e);
     return true;
   }
@@ -77,12 +77,12 @@ void showSnackBar(String message, context) {
     backgroundColor: Colors.red,
     content: Text(
       message,
-      style: TextStyle(
+      style: const TextStyle(
         fontFamily: 'sf',
         color: Colors.black,
       ),
     ),
-    duration: Duration(seconds: 2),
+    duration: const Duration(seconds: 2),
   );
 
 // Find the ScaffoldMessenger in the widget tree
@@ -122,7 +122,7 @@ Future<void> getNext5Hours(cityName) async {
   }
   try {
     a = await http.get(Uri.parse(
-        'https://api.openweathermap.org/data/2.5/forecast?lat=${cLat}&lon=${cLon}&appid=${WeatherAPIKey}&units=metric&cnt=10'));
+        'https://api.openweathermap.org/data/2.5/forecast?lat=$cLat&lon=$cLon&appid=$WeatherAPIKey&units=metric&cnt=10'));
     //print(a.body);
     j = jsonDecode(a.body);
   } on http.ClientException catch (e) {
@@ -175,7 +175,7 @@ class HourlyForecast extends StatelessWidget {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 300 + (index * 100)),
         curve: Curves.fastOutSlowIn,
-        constraints: BoxConstraints(
+        constraints: const BoxConstraints(
           maxHeight: 110,
           maxWidth: 60,
           minWidth: 50,
@@ -206,7 +206,7 @@ class HourlyForecast extends StatelessWidget {
                   chooseIcon(mainWeather),
                   color: IconColor,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 Text('$temp °C', style: smallSB),
@@ -251,7 +251,7 @@ class frfState extends State<frf> {
               index: index,
             );
           },
-          separatorBuilder: (context, index) => SizedBox()),
+          separatorBuilder: (context, index) => const SizedBox()),
     );
   }
 }
@@ -284,10 +284,10 @@ Future<void> showTempDiag(
               time,
               style: mediumSSB,
             ),
-            SizedBox(
+            const SizedBox(
               height: 5,
             ),
-            Text('${temp} °C', style: mediumBigBold),
+            Text('$temp °C', style: mediumBigBold),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -296,7 +296,7 @@ Future<void> showTempDiag(
                   weatherIcon,
                   color: IconColor,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 5,
                 ),
               ],
@@ -314,7 +314,7 @@ Future<void> showTempDiag(
                 );
               }
             }),
-            SizedBox(
+            const SizedBox(
               height: 15,
             ),
             Row(
@@ -325,10 +325,10 @@ Future<void> showTempDiag(
                   degree: windDegInt,
                   color: IconColor,
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 5,
                 ),
-                Text('${windSpeedDouble} ${language.kmh}', style: smallSB),
+                Text('$windSpeedDouble ${language.kmh}', style: smallSB),
               ],
             ),
           ],
